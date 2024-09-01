@@ -1,0 +1,309 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API Dette Management",
+        "description": "Documentation de l'API pour la gestion des dettes.",
+        "contact": {
+            "email": "support@votreprojet.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000",
+            "description": "Serveur local"
+        }
+    ],
+    "paths": {
+        "/api/v1/dettes": {
+            "post": {
+                "tags": [
+                    "Dettes"
+                ],
+                "summary": "Enregistrer une nouvelle dette",
+                "operationId": "2e1cb2653ebc3f48df1c49dada9dfc9f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "montant",
+                                    "clientId",
+                                    "articles"
+                                ],
+                                "properties": {
+                                    "montant": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000000
+                                    },
+                                    "clientId": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "articles": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "articleId": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "qteVente": {
+                                                    "type": "integer",
+                                                    "example": 500
+                                                },
+                                                "prixVente": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 100
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "paiement": {
+                                        "properties": {
+                                            "montant": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 500000
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Dette enregistrée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/DetteResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dette enregistrée avec succès"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Erreur",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Le montant du paiement dépasse le montant de la dette."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur Serveur",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Une erreur est survenue lors de l'enregistrement de la dette."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "passport": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "DetteResource": {
+                "title": "DetteResource",
+                "description": "Ressource Dette",
+                "properties": {
+                    "id": {
+                        "description": "ID de la dette",
+                        "type": "integer"
+                    },
+                    "montant": {
+                        "description": "Montant de la dette",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "client": {
+                        "$ref": "#/components/schemas/ClientResource"
+                    },
+                    "articles": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ArticleResource"
+                        }
+                    },
+                    "paiements": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PaiementResource"
+                        }
+                    },
+                    "created_at": {
+                        "description": "Date de création",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "description": "Date de mise à jour",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ClientResource": {
+                "title": "ClientResource",
+                "description": "Ressource Client",
+                "properties": {
+                    "id": {
+                        "description": "ID du client",
+                        "type": "integer"
+                    },
+                    "nom": {
+                        "description": "Nom du client",
+                        "type": "string"
+                    },
+                    "email": {
+                        "description": "Email du client",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "telephone": {
+                        "description": "Numéro de téléphone du client",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ArticleResource": {
+                "title": "ArticleResource",
+                "description": "Ressource Article",
+                "properties": {
+                    "id": {
+                        "description": "ID de l'article",
+                        "type": "integer"
+                    },
+                    "nom": {
+                        "description": "Nom de l'article",
+                        "type": "string"
+                    },
+                    "qte_stock": {
+                        "description": "Quantité en stock",
+                        "type": "integer"
+                    },
+                    "prix_vente": {
+                        "description": "Prix de vente",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "pivot": {
+                        "description": "Données pivot",
+                        "properties": {
+                            "qte_vente": {
+                                "description": "Quantité vendue",
+                                "type": "integer"
+                            },
+                            "prix_vente": {
+                                "description": "Prix de vente",
+                                "type": "number",
+                                "format": "float"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "PaiementResource": {
+                "title": "PaiementResource",
+                "description": "Ressource Paiement",
+                "properties": {
+                    "id": {
+                        "description": "ID du paiement",
+                        "type": "integer"
+                    },
+                    "montant": {
+                        "description": "Montant du paiement",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "created_at": {
+                        "description": "Date de création",
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "passport": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Dettes",
+            "description": "Gestion des dettes"
+        }
+    ]
+}
