@@ -22,7 +22,7 @@ use Illuminate\Routing\Controller as BaseController;
  * )
  *
  * @OA\Server(
- *     url="http://localhost:3000",
+ *     url="http://localhost:8000",
  *     description="Serveur local"
  * )
  *
@@ -85,6 +85,30 @@ use Illuminate\Routing\Controller as BaseController;
  *     @OA\Property(property="id", type="integer", description="ID du paiement"),
  *     @OA\Property(property="montant", type="number", format="float", description="Montant du paiement"),
  *     @OA\Property(property="created_at", type="string", format="date-time", description="Date de création")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="User",
+ *     type="object",
+ *     required={"id", "name", "prenom", "login", "email"},
+ *     @OA\Property(property="id", type="integer", format="int64", example=1),
+ *     @OA\Property(property="name", type="string", example="John Doe"),
+ *     @OA\Property(property="prenom", type="string", example="John"),
+ *     @OA\Property(property="login", type="string", example="johndoe"),
+ *     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+ *     @OA\Property(property="etat", type="string", example="actif")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="Client",
+ *     type="object",
+ *     required={"id", "nom", "email", "telephone"},
+ *     @OA\Property(property="id", type="integer", format="int64", example=1),
+ *     @OA\Property(property="nom", type="string", example="Jane Doe"),
+ *     @OA\Property(property="email", type="string", format="email", example="jane.doe@example.com"),
+ *     @OA\Property(property="telephone", type="string", example="+123456789"),
+ *     @OA\Property(property="adresse", type="string", example="123 Main St"),
+ *     @OA\Property(property="surnom", type="string", example="JD")
  * )
  */
 class Controller extends BaseController

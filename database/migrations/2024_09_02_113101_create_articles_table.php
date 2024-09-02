@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,9 +10,9 @@ class CreateArticlesTable extends Migration
     {
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
-            $table->string('nom');
-            $table->integer('qte_stock')->default(0);
-            $table->decimal('prix_vente', 10, 2);
+            $table->string('libelle')->unique();
+            $table->decimal('prix', 10, 2);
+            $table->integer('qteStock');
             $table->timestamps();
         });
     }

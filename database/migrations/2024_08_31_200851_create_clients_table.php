@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,6 +13,8 @@ class CreateClientsTable extends Migration
             $table->string('nom');
             $table->string('email')->unique();
             $table->string('telephone')->nullable();
+            $table->string('adresse')->nullable();
+            $table->string('surnom')->nullable();
             $table->timestamps();
         });
     }

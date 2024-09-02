@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -8,7 +9,13 @@ class Client extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom', 'email', 'telephone'];
+    protected $fillable = [
+        'nom',
+        'email',
+        'telephone',
+        'adresse',
+        'surnom',
+    ];
 
     public function dettes()
     {
