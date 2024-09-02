@@ -110,6 +110,17 @@ use Illuminate\Routing\Controller as BaseController;
  *     @OA\Property(property="adresse", type="string", example="123 Main St"),
  *     @OA\Property(property="surnom", type="string", example="JD")
  * )
+ * 
+ * @OA\Schema(
+ *     schema="Article",
+ *     required={"id", "libelle", "prix", "qteStock"},
+ *     @OA\Property(property="id", type="integer", format="int64", readOnly=true),
+ *     @OA\Property(property="libelle", type="string", maxLength=255),
+ *     @OA\Property(property="prix", type="number", format="float"),
+ *     @OA\Property(property="qteStock", type="integer"),
+ *     @OA\Property(property="created_at", type="string", format="date-time", readOnly=true),
+ *     @OA\Property(property="updated_at", type="string", format="date-time", readOnly=true)
+ * )
  */
 class Controller extends BaseController
 {

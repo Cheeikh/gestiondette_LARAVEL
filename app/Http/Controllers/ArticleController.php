@@ -13,18 +13,7 @@ use Illuminate\Support\Facades\Validator;
  * )
  */
 
-/**
- * @OA\Schema(
- *     schema="Article",
- *     required={"id", "libelle", "prix", "qteStock"},
- *     @OA\Property(property="id", type="integer", format="int64", readOnly=true),
- *     @OA\Property(property="libelle", type="string", maxLength=255),
- *     @OA\Property(property="prix", type="number", format="float"),
- *     @OA\Property(property="qteStock", type="integer"),
- *     @OA\Property(property="created_at", type="string", format="date-time", readOnly=true),
- *     @OA\Property(property="updated_at", type="string", format="date-time", readOnly=true)
- * )
- */
+
 
 /**
  * @OA\Schema(
@@ -55,28 +44,27 @@ use Illuminate\Support\Facades\Validator;
 class ArticleController extends Controller
 {
     /**
- * @OA\Get(
- *     path="/api/articles",
- *     operationId="getArticlesList",
- *     tags={"Articles"},
- *     summary="Obtenir la liste des articles",
- *     description="Retourne la liste de tous les articles",
- *     @OA\Response(
- *         response=200,
- *         description="Opération réussie",
- *         @OA\JsonContent(
- *             type="array",
- *             @OA\Items(ref="#/components/schemas/Article")
- *         )
- *     )
- * )
- */
-public function index()
-{
-    $articles = Article::all();
-    return response()->json($articles);
-}
-
+     * @OA\Get(
+     *     path="/api/articles",
+     *     operationId="getArticlesList",
+     *     tags={"Articles"},
+     *     summary="Obtenir la liste des articles",
+     *     description="Retourne la liste de tous les articles",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Opération réussie",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Article")
+     *         )
+     *     )
+     * )
+     */
+    public function index()
+    {
+        $articles = Article::all();
+        return response()->json($articles, 200);
+    }
 
     /**
      * @OA\Post(
@@ -103,9 +91,19 @@ public function index()
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'libelle' => 'required|unique:articles|max:255',
+            'libelle' => 'required|string|max:255|unique:articles,libelle',
             'prix' => 'required|numeric|min:0',
             'qteStock' => 'required|integer|min:0',
+        ], [
+            'libelle.required' => 'Le libellé est obligatoire.',
+            'libelle.unique' => 'Ce libellé est déjà utilisé.',
+            'libelle.max' => 'Le libellé ne peut pas dépasser 255 caractères.',
+            'prix.required' => 'Le prix est obligatoire.',
+            'prix.numeric' => 'Le prix doit être un nombre.',
+            'prix.min' => 'Le prix ne peut pas être négatif.',
+            'qteStock.required' => 'La quantité en stock est obligatoire.',
+            'qteStock.integer' => 'La quantité en stock doit être un entier.',
+            'qteStock.min' => 'La quantité en stock ne peut pas être négative.',
         ]);
 
         if ($validator->fails()) {
@@ -143,7 +141,7 @@ public function index()
     public function show($id)
     {
         $article = Article::findOrFail($id);
-        return response()->json($article);
+        return response()->json($article, 200);
     }
 
     /**
@@ -183,9 +181,19 @@ public function index()
         $article = Article::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'libelle' => 'required|unique:articles,libelle,' . $id . '|max:255',
+            'libelle' => 'required|string|max:255|unique:articles,libelle,' . $id,
             'prix' => 'required|numeric|min:0',
             'qteStock' => 'required|integer|min:0',
+        ], [
+            'libelle.required' => 'Le libellé est obligatoire.',
+            'libelle.unique' => 'Ce libellé est déjà utilisé.',
+            'libelle.max' => 'Le libellé ne peut pas dépasser 255 caractères.',
+            'prix.required' => 'Le prix est obligatoire.',
+            'prix.numeric' => 'Le prix doit être un nombre.',
+            'prix.min' => 'Le prix ne peut pas être négatif.',
+            'qteStock.required' => 'La quantité en stock est obligatoire.',
+            'qteStock.integer' => 'La quantité en stock doit être un entier.',
+            'qteStock.min' => 'La quantité en stock ne peut pas être négative.',
         ]);
 
         if ($validator->fails()) {
@@ -193,7 +201,7 @@ public function index()
         }
 
         $article->update($request->all());
-        return response()->json($article);
+        return response()->json($article, 200);
     }
 
     /**
@@ -226,5 +234,3 @@ public function index()
         return response()->json(null, 204);
     }
 }
-
-

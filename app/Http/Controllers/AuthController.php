@@ -77,43 +77,54 @@ public function index()
      */
 
 
-    public function register(Request $request)
-    {
-        // Valider les données d'entrée
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'prenom' => 'required|string|max:255',
-            'login' => 'required|string|max:255|unique:users,login',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:5|confirmed',
-            'role' => [
-                'required',
-                Rule::in(['admin', 'vendeur']), // Valider que le rôle est soit 'admin', soit 'vendeur'
-            ],
-        ]);
-
-        // Créer un nouvel utilisateur
-        $user = User::create([
-            'name' => $request->name,
-            'prenom' => $request->prenom,
-            'login' => $request->login,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'etat' => 'actif', // L'utilisateur est actif par défaut
-        ]);
-
-        // Assigner le rôle (admin ou vendeur)
-        $user->assignRole($request->role);
-
-        // Générer un token d'accès pour l'utilisateur
-        $token = $user->createToken('auth_token')->accessToken;
-
-        // Retourner la réponse JSON avec l'utilisateur et le token d'accès
-        return response()->json([
-            'user' => $user,
-            //'access_token' => $token,
-        ], 201);
-    }
+     public function register(Request $request)
+     {
+         // Validation des données d'entrée avec des messages personnalisés
+         $request->validate([
+             'name' => 'required|string|max:255',
+             'prenom' => 'required|string|max:255',
+             'login' => 'required|string|max:255|unique:users,login',
+             'email' => 'required|string|email|max:255|unique:users,email',
+             'password' => 'required|string|min:5|confirmed',
+             'role' => [
+                 'required',
+                 Rule::in(['admin', 'vendeur']), // Valider que le rôle est soit 'admin', soit 'vendeur'
+             ],
+         ], [
+             'name.required' => 'Le nom est obligatoire.',
+             'prenom.required' => 'Le prénom est obligatoire.',
+             'login.required' => 'Le login est obligatoire.',
+             'login.unique' => 'Ce login est déjà utilisé.',
+             'email.required' => 'L\'email est obligatoire.',
+             'email.unique' => 'Cet email est déjà utilisé.',
+             'password.required' => 'Le mot de passe est obligatoire.',
+             'password.confirmed' => 'Les mots de passe ne correspondent pas.',
+             'role.required' => 'Le rôle est obligatoire.',
+             'role.in' => 'Le rôle doit être soit admin, soit vendeur.',
+         ]);
+     
+         // Créer un nouvel utilisateur
+         $user = User::create([
+             'name' => $request->name,
+             'prenom' => $request->prenom,
+             'login' => $request->login,
+             'email' => $request->email,
+             'password' => Hash::make($request->password),
+             'etat' => 'actif', // L'utilisateur est actif par défaut
+         ]);
+     
+         // Assigner le rôle (admin ou vendeur)
+         $user->assignRole($request->role);
+     
+         // Générer un token d'accès pour l'utilisateur
+         $token = $user->createToken('auth_token')->accessToken;
+     
+         // Retourner la réponse JSON avec l'utilisateur et le token d'accès
+         return response()->json([
+             'user' => $user,
+             'access_token' => $token,
+         ], 201);
+     }
 
 
     /**

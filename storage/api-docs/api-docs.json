@@ -19,6 +19,171 @@
         }
     ],
     "paths": {
+        "/api/articles": {
+            "get": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Obtenir la liste des articles",
+                "description": "Retourne la liste de tous les articles",
+                "operationId": "getArticlesList",
+                "responses": {
+                    "200": {
+                        "description": "Opération réussie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Article"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Créer un nouvel article",
+                "description": "Crée un nouvel article et retourne les données créées",
+                "operationId": "storeArticle",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Article créé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Article"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Données invalides"
+                    }
+                }
+            }
+        },
+        "/api/articles/{id}": {
+            "get": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Obtenir un article spécifique",
+                "description": "Retourne un article spécifique",
+                "operationId": "getArticleById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Opération réussie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Article"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Article non trouvé"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Mettre à jour un article existant",
+                "description": "Met à jour un article existant et retourne les données mises à jour",
+                "operationId": "updateArticle",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Article mis à jour avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Article"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Article non trouvé"
+                    },
+                    "422": {
+                        "description": "Données invalides"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Articles"
+                ],
+                "summary": "Supprimer un article",
+                "description": "Supprime un article existant",
+                "operationId": "deleteArticle",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Article supprimé avec succès"
+                    },
+                    "404": {
+                        "description": "Article non trouvé"
+                    }
+                }
+            }
+        },
         "/api/users": {
             "get": {
                 "tags": [
@@ -574,6 +739,41 @@
     },
     "components": {
         "schemas": {
+            "ArticleRequest": {
+                "required": [
+                    "libelle",
+                    "prix",
+                    "qteStock"
+                ],
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Article"
+                    },
+                    {
+                        "properties": {
+                            "libelle": {
+                                "description": "Nom de l'article",
+                                "type": "string",
+                                "maxLength": 255,
+                                "example": "Lait Laicran 700g"
+                            },
+                            "prix": {
+                                "description": "Prix de l'article",
+                                "type": "number",
+                                "format": "float",
+                                "example": 1700
+                            },
+                            "qteStock": {
+                                "description": "Quantité en stock",
+                                "type": "integer",
+                                "example": 1000
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
             "DetteResource": {
                 "title": "DetteResource",
                 "description": "Ressource Dette",
@@ -773,6 +973,43 @@
                     }
                 },
                 "type": "object"
+            },
+            "Article": {
+                "required": [
+                    "id",
+                    "libelle",
+                    "prix",
+                    "qteStock"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "readOnly": true
+                    },
+                    "libelle": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "prix": {
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "qteStock": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -800,6 +1037,10 @@
         {
             "name": "Dettes",
             "description": "Gestion des dettes"
+        },
+        {
+            "name": "Articles",
+            "description": "Articles"
         }
     ],
     "security": [
