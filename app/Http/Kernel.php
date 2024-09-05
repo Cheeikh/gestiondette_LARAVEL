@@ -4,29 +4,28 @@ namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
+
 class Kernel extends HttpKernel
 {
     /**
-     * The application's global HTTP middleware stack.
-     *
-     * These middleware are run during every request to your application.
+     * Les middlewares globaux pour l'application.
      *
      * @var array<int, class-string|string>
      */
     protected $middleware = [
-        // \App\Http\Middleware\TrustHosts::class,
+        // Middlewares globaux
         \App\Http\Middleware\TrustProxies::class,
-        \Illuminate\Http\Middleware\HandleCors::class,
+        \Fruitcake\Cors\HandleCors::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        \App\Http\Middleware\ApiResponseMiddleware::class,  // Ajoutez votre middleware personnalisé ici
-            \App\Http\Middleware\TestMiddleware::class,
+        // Ajout de notre middleware pour structurer les réponses
+        \App\Http\Middleware\ApiResponseMiddleware::class,
     ];
 
     /**
-     * The application's route middleware groups.
+     * Les groupes de middleware pour l'application.
      *
      * @var array<string, array<int, class-string|string>>
      */
@@ -42,16 +41,15 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            // Le middleware throttle est souvent utilisé pour limiter les requêtes API
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            // Ajout de notre middleware pour structurer les réponses
+            \App\Http\Middleware\ApiResponseMiddleware::class,
         ],
     ];
 
     /**
-     * The application's route middleware.
-     *
-     * These middleware may be assigned to groups or used individually.
+     * Les middlewares de route individuels pour l'application.
      *
      * @var array<string, class-string|string>
      */
@@ -65,6 +63,9 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'auth' => \App\Http\Middleware\Authenticate::class,
+        // Ajout du middleware pour l'authentification avec Passport ou Sanctum
+        'auth.passport' => \App\Http\Middleware\PassportAuthenticate::class,
+        'auth.sanctum' => \App\Http\Middleware\SanctumAuthenticate::class,
+        'api.response' => \App\Http\Middleware\ApiResponseMiddleware::class,
     ];
 }

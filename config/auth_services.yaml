@@ -1,0 +1,7 @@
+auth_services:
+  default: passport
+  services:
+    passport:
+      class: App\Services\PassportAuthenticationService
+    sanctum:
+      class: App\Services\SanctumAuthenticationService

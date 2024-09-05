@@ -10,15 +10,23 @@ class Client extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nom',
-        'email',
+        'surname',
         'telephone',
+        'email',  // Ajout du champ email
         'adresse',
-        'surnom',
+        'user_id',
+        'active',
+        'photo', 
     ];
 
-    public function dettes()
+    public function user()
     {
-        return $this->hasMany(Dette::class);
+        return $this->belongsTo(User::class);
+    }
+
+    public function getPhotoAttribute()
+    {
+        // Retourne l'URL de l'avatar par défaut si aucune photo n'est définie
+        return $this->attributes['photo'] ?? 'https://url-to-default-avatar';
     }
 }

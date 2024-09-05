@@ -2,23 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Passport\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Laravel\Passport\HasApiTokens; 
 
 class User extends Authenticatable
 {
-    use HasRoles, HasFactory, HasApiTokens, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     protected $fillable = [
-        'name',
+        'nom',
         'prenom',
         'login',
-        'email',
         'password',
-        'etat',
+        'role_id',
+        'active',
+        'photo', 
     ];
 
     protected $hidden = [
@@ -26,12 +26,14 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
+    // Relation avec le modèle Role
+    public function role()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'etat' => 'string', // Ajout pour l'énumération de l'état
-        ];
+        return $this->belongsTo(Role::class);
     }
+
+    public function client()
+{
+    return $this->hasOne(Client::class);
+}
 }

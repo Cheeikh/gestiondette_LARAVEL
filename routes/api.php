@@ -1,44 +1,37 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DetteController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\ArticleController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Passport\Http\Controllers\AccessTokenController;
-use Laravel\Passport\Http\Controllers\AuthorizationController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ClientController;
 
-// Routes publiques pour l'authentification
-Route::post('/register', [AuthController::class, 'register']);  // Crée un nouvel utilisateur (admin ou vendeur)
-Route::post('/login', [AuthController::class, 'login']);        // Authentification de l'utilisateur
+// Préfixe pour la version 1 de l'API
+Route::prefix('v1')->group(function () {
 
-// Routes protégées par auth:api
-Route::middleware('auth:api')->group(function () {
-    Route::get('/users', [AuthController::class, 'index']);        // Liste tous les utilisateurs
-
-    // Déconnexion de l'utilisateur
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    // Routes spécifiques pour les clients
-    Route::apiResource('clients', ClientController::class);
-
-    // Route pour créer un compte utilisateur pour un client existant
-    Route::post('/clients/create-account', [AuthController::class, 'createClientAccount']);
-
-    // Routes pour les articles
-    Route::apiResource('articles', ArticleController::class);
-
-    // Préfixe v1 pour les routes de l'API
-    Route::prefix('v1')->group(function () {
-        // Gestion des dettes
-        Route::post('/dettes', [DetteController::class, 'store']);
-        
-        // Ajoutez ici d'autres routes protégées pour votre API
+    // Routes publiques pour l'enregistrement et la connexion des utilisateurs
+    Route::prefix('users')->group(function () {
+        Route::post('/register', [UserController::class, 'register']);  // Enregistrement des utilisateurs
     });
-});
 
-// Routes Passport OAuth
-Route::prefix('oauth')->group(function () {
-    Route::post('/token', [AccessTokenController::class, 'issueToken']);
-    Route::get('/authorize', [AuthorizationController::class, 'authorize'])->middleware('auth:api');
+    Route::post('/login', [UserController::class, 'login']);  // Connexion des utilisateurs
+
+    // Routes protégées par l'authentification
+    Route::middleware('auth:api')->group(function () {
+
+        // Préfixe pour les routes des utilisateurs
+        Route::prefix('users')->group(function () {
+            Route::get('/', [UserController::class, 'index']);  // Lister tous les utilisateurs
+            Route::get('/role', [UserController::class, 'getByRole']);  // Obtenir les utilisateurs par rôle
+            Route::get('/me', [UserController::class, 'user']);  // Récupérer les informations de l'utilisateur connecté
+            Route::post('/logout', [UserController::class, 'logout']);  // Déconnexion de l'utilisateur
+            Route::post('/refresh', [UserController::class, 'refresh']);  // Rafraîchir le token d'accès
+        });
+
+        // Préfixe pour les routes des clients
+        Route::prefix('clients')->group(function () {
+            Route::get('/', [ClientController::class, 'index']);  // Lister tous les clients
+            Route::post('/', [ClientController::class, 'store']);  // Enregistrer un nouveau client
+            Route::get('/{id}', [ClientController::class, 'show']);  // Obtenir les informations d'un client par ID
+            Route::get('/{id}/user', [ClientController::class, 'showClientWithUser']);  // Obtenir les informations d'un client et son compte utilisateur
+        });
+    });
 });

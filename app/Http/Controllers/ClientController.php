@@ -2,167 +2,130 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
+use App\Http\Requests\RegisterClientRequest;
+use App\Http\Requests\RegisterUserRequest;
+use App\Interfaces\ClientServiceInterface;
+use App\Uploads\UploadInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use PDF;
+use App\Http\Controllers\UserController;
 
-/**
- * @OA\Tag(
- *     name="Clients",
- *     description="Endpoints liés à la gestion des clients"
- * )
- */
 class ClientController extends Controller
 {
-    /**
-     * Méthode pour créer un client.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    protected $clientService;
+    protected $uploadService;
+    protected $userController;
 
-      /**
-     * @OA\Post(
-     *     path="/api/clients",
-     *     operationId="storeClient",
-     *     tags={"Clients"},
-     *     summary="Créer un nouveau client",
-     *     description="Ajoute un nouveau client dans la base de données",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"nom","email","telephone"},
-     *             @OA\Property(property="nom", type="string", example="Jane Doe"),
-     *             @OA\Property(property="email", type="string", format="email", example="jane.doe@example.com"),
-     *             @OA\Property(property="telephone", type="string", example="+123456789"),
-     *             @OA\Property(property="adresse", type="string", example="123 Main St"),
-     *             @OA\Property(property="surnom", type="string", example="JD")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Client créé avec succès",
-     *         @OA\JsonContent(ref="#/components/schemas/Client")
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation Error"
-     *     )
-     * )
-     */
-    public function store(Request $request)
+    public function __construct(ClientServiceInterface $clientService, UploadInterface $uploadService, UserController $userController)
     {
-        // Validation des données entrantes
-        $validator = Validator::make($request->all(), [
-            'nom' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:clients',
-            'telephone' => 'required|string|max:15',
-            'adresse' => 'nullable|string|max:255',
-            'surnom' => 'nullable|string|max:50',
-        ]);
+        $this->clientService = $clientService;
+        $this->uploadService = $uploadService;
+        $this->userController = $userController;
+    }
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+    // Enregistrer un nouveau client avec ou sans compte utilisateurpublic function store(RegisterClientRequest $request)
+    public function store(RegisterClientRequest $request)
+{
+    
+
+    // Enregistrer le client avec la photo
+    $clientData = array_merge($request->validated());
+
+    // Vérifier si les données du compte utilisateur sont présentes
+    if ($request->has('user')) {
+        // Extraire et valider les données utilisateur
+        $userData = $request->input('user');
+
+        // Créer une nouvelle instance de RegisterUserRequest avec les données utilisateur
+        $userRequest = new RegisterUserRequest();
+        $userRequest->merge($userData);
+
+        // Valider les données utilisateur
+        $userRequest->validate();
+
+        // Créer le compte utilisateur en utilisant le UserController
+        $userResponse = $this->userController->register($userRequest);
+
+        if ($userResponse->getStatusCode() !== 201) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Failed to create user account'
+            ], 400);
         }
 
-        // Création du client
-        $client = Client::create([
-            'nom' => $request->nom,
-            'email' => $request->email,
-            'telephone' => $request->telephone,
-            'adresse' => $request->adresse,
-            'surnom' => $request->surnom,
-        ]);
-
-        return response()->json(['client' => $client], 201);
+        $userData = $userResponse->getData()->data;
+        $clientData['user_id'] = $userData->id;
     }
 
-    /**
-     * Méthode pour lister tous les clients.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+    $client = $this->clientService->registerClient($clientData);
 
-     /**
-     * @OA\Get(
-     *     path="/api/clients",
-     *     operationId="getClientsList",
-     *     tags={"Clients"},
-     *     summary="Lister tous les clients",
-     *     description="Retourne une liste de tous les clients.",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Liste des clients",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Client")
-     *         )
-     *     )
-     * )
-     */
-    public function index()
-    {
-        $clients = Client::all(); // Récupérer tous les clients
-        return response()->json(['clients' => $clients], 200);
+    // Génération de la carte de fidélité en PDF
+    $pdf = PDF::loadView('fidelite.carte', compact('client'));
+
+    // Envoyer un email avec la carte de fidélité en pièce jointe
+    Mail::send('emails.client_fidelite', compact('client'), function ($message) use ($client, $pdf) {
+        $message->to($client->email)
+                ->subject('Votre carte de fidélité')
+                ->attachData($pdf->output(), 'carte_fidelite.pdf');
+    });
+
+    // Préparer la réponse
+    $response = [
+        'surname' => $client->surname,
+        'adresse' => $client->adresse,
+        'telephone' => $client->telephone,
+        'email' => $client->email,
+    ];
+
+    if (isset($clientData['user_id'])) {
+        $response['user'] = $userData;
     }
 
-    /**
-     * Méthode pour voir les détails d'un client spécifique.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-
-     /**
-     * @OA\Get(
-     *     path="/api/clients/{id}",
-     *     operationId="getClientById",
-     *     tags={"Clients"},
-     *     summary="Voir les détails d'un client",
-     *     description="Retourne les détails d'un client spécifique.",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer"),
-     *         description="ID du client"
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Détails du client",
-     *         @OA\JsonContent(ref="#/components/schemas/Client")
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Client not found"
-     *     )
-     * )
-     */
-    public function show($id)
-    {
-        $client = Client::find($id); // Trouver le client par ID
-
-        if (!$client) {
-            return response()->json(['message' => 'Client not found'], 404);
-        }
-
-        return response()->json(['client' => $client], 200);
-    }
+    return response()->json([
+        'status' => 201,
+        'data' => $response,
+        'message' => 'Client enregistré avec succès et carte de fidélité envoyée'
+    ], 201);
 }
 
-/**
- * @OA\Schema(
- *     schema="Client",
- *     type="object",
- *     required={"id", "nom", "email", "telephone"},
- *     @OA\Property(property="id", type="integer", format="int64", example=1),
- *     @OA\Property(property="nom", type="string", example="Jane Doe"),
- *     @OA\Property(property="email", type="string", format="email", example="jane.doe@example.com"),
- *     @OA\Property(property="telephone", type="string", example="+123456789"),
- *     @OA\Property(property="adresse", type="string", example="123 Main St"),
- *     @OA\Property(property="surnom", type="string", example="JD")
- * )
- */
+
+    // Lister tous les clients avec filtres (comptes et active)
+    public function index(Request $request)
+    {
+        $comptes = $request->query('comptes');
+        $active = $request->query('active');
+        
+        $clients = $this->clientService->getAllClients($comptes, $active);
+
+        return response()->json([
+            'status' => 200,
+            'data' => $clients,
+            'message' => 'Liste des clients'
+        ], 200);
+    }
+
+    // Obtenir les informations d'un client par son ID
+    public function show($id)
+    {
+        $client = $this->clientService->getClientById($id);
+
+        return response()->json([
+            'status' => 200,
+            'data' => $client,
+            'message' => 'Détails du client'
+        ], 200);
+    }
+
+    // Obtenir les informations du client ainsi que son compte utilisateur
+    public function showClientWithUser($id)
+    {
+        $clientWithUser = $this->clientService->getClientWithUser($id);
+
+        return response()->json([
+            'status' => 200,
+            'data' => $clientWithUser,
+            'message' => 'Détails du client avec compte utilisateur'
+        ], 200);
+    }
+}

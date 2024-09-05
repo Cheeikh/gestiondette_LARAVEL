@@ -1,0 +1,563 @@
+openapi: 3.0.0
+info:
+  title: Gestion Dette API
+  version: 1.0.0
+  description: API pour la gestion des dettes
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Serveur local
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
+
+paths:
+  /users:
+    get:
+      summary: Liste des utilisateurs
+      operationId: getUsers
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        nom:
+                          type: string
+                        prenom:
+                          type: string
+                        login:
+                          type: string
+                        role_id:
+                          type: integer
+                        role_name:
+                          type: string
+                        active:
+                          type: boolean
+                  message:
+                    type: string
+                    example: Liste des utilisateurs récupérée avec succès
+
+  /users/register:
+    post:
+      summary: Créer un nouvel utilisateur
+      operationId: createUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nom
+                - prenom
+                - login
+                - password
+                - role_id
+              properties:
+                nom:
+                  type: string
+                prenom:
+                  type: string
+                login:
+                  type: string
+                password:
+                  type: string
+                role_id:
+                  type: integer
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 201
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      nom:
+                        type: string
+                      prenom:
+                        type: string
+                      login:
+                        type: string
+                      role_id:
+                        type: integer
+                      role_name:
+                        type: string
+                  message:
+                    type: string
+                    example: Utilisateur créé avec succès
+
+  /login:
+    post:
+      summary: Connexion d'un utilisateur
+      operationId: loginUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+                - password
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                      token_type:
+                        type: string
+                      expires_at:
+                        type: string
+                      refresh_token:
+                        type: string
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          nom:
+                            type: string
+                          prenom:
+                            type: string
+                          login:
+                            type: string
+                          role_id:
+                            type: integer
+                          role_name:
+                            type: string
+                          active:
+                            type: boolean
+                  message:
+                    type: string
+                    example: Connexion réussie
+        '401':
+          description: Échec de la connexion (identifiants invalides)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 401
+                  message:
+                    type: string
+                    example: Identifiants invalides
+
+  /users/me:
+    get:
+      summary: Récupérer les informations de l'utilisateur connecté
+      operationId: getCurrentUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Informations de l'utilisateur connecté
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      nom:
+                        type: string
+                      prenom:
+                        type: string
+                      login:
+                        type: string
+                      role_id:
+                        type: integer
+                      role_name:
+                        type: string
+                      active:
+                        type: boolean
+                  message:
+                    type: string
+                    example: Informations de l'utilisateur récupérées avec succès
+
+  /users/logout:
+    post:
+      summary: Déconnexion de l'utilisateur
+      operationId: logoutUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Utilisateur déconnecté avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Utilisateur déconnecté avec succès
+
+  /users/refresh:
+    post:
+      summary: Rafraîchir le token d'accès
+      operationId: refreshToken
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token rafraîchi avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                      token_type:
+                        type: string
+                      expires_at:
+                        type: string
+                      refresh_token:
+                        type: string
+                  message:
+                    type: string
+                    example: Token rafraîchi avec succès
+        '400':
+          description: Token de rafraîchissement invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: Token de rafraîchissement invalide
+
+  /clients:
+    get:
+      summary: Lister tous les clients
+      operationId: getClients
+      tags:
+        - Clients
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: comptes
+          required: false
+          schema:
+            type: string
+            enum: [oui, non]
+          description: Filtrer les clients ayant un compte utilisateur
+        - in: query
+          name: active
+          required: false
+          schema:
+            type: string
+            enum: [oui, non]
+          description: Filtrer les clients actifs ou inactifs
+      responses:
+        '200':
+          description: Liste des clients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        surname:
+                          type: string
+                        telephone:
+                          type: string
+                        adresse:
+                          type: string
+                          nullable: true
+                        active:
+                          type: boolean
+                  message:
+                    type: string
+                    example: Liste des clients récupérée avec succès
+
+    post:
+      summary: Enregistrer un nouveau client
+      operationId: createClient
+      tags:
+        - Clients
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                surname:
+                  type: string
+                telephone:
+                  type: string
+                adresse:
+                  type: string
+                  nullable: true
+                user:
+                  type: object
+                  properties:
+                    nom:
+                      type: string
+                    prenom:
+                      type: string
+                    login:
+                      type: string
+                    password:
+                      type: string
+                    role:
+                      type: string
+                      enum: [client]
+      responses:
+        '201':
+          description: Client enregistré avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 201
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      surname:
+                        type: string
+                      telephone:
+                        type: string
+                      adresse:
+                        type: string
+                        nullable: true
+                      user:
+                        type: object
+                        nullable: true
+                        properties:
+                          id:
+                            type: integer
+                          nom:
+                            type: string
+                          prenom:
+                            type: string
+                          login:
+                            type: string
+                          role:
+                            type: string
+                  message:
+                    type: string
+                    example: Client enregistré avec succès
+
+  /clients/{id}:
+    get:
+      summary: Obtenir les informations d'un client par ID
+      operationId: getClientById
+      tags:
+        - Clients
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID du client
+      responses:
+        '200':
+          description: Détails du client
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      surname:
+                        type: string
+                      telephone:
+                        type: string
+                      adresse:
+                        type: string
+                        nullable: true
+                      user:
+                        type: object
+                        nullable: true
+                        properties:
+                          id:
+                            type: integer
+                          nom:
+                            type: string
+                          prenom:
+                            type: string
+                          login:
+                            type: string
+                          role:
+                            type: string
+                  message:
+                    type: string
+                    example: Détails du client récupérés avec succès
+
+  /clients/{id}/user:
+    get:
+      summary: Obtenir les informations du client ainsi que son compte utilisateur
+      operationId: getClientAndUser
+      tags:
+        - Clients
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID du client
+      responses:
+        '200':
+          description: Détails du client et du compte utilisateur associé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      client:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          surname:
+                            type: string
+                          telephone:
+                            type: string
+                          adresse:
+                            type: string
+                            nullable: true
+                      user:
+                        type: object
+                        nullable: true
+                        properties:
+                          id:
+                            type: integer
+                          nom:
+                            type: string
+                          prenom:
+                            type: string
+                          login:
+                            type: string
+                          role:
+                            type: string
+                  message:
+                    type: string
+                    example: Détails du client et du compte utilisateur récupérés avec succès
