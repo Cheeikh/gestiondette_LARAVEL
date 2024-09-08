@@ -28,4 +28,21 @@ class SanctumAuthenticationService implements AuthentificationServiceInterface
             'message' => 'Login successful'
         ];
     }
+    public function logout(): array
+    {
+        if (Auth::check()) {
+            Auth::user()->tokens()->delete();
+        }
+        return [
+            'status' => 200,
+            'message' => 'Logout successful'
+        ];
+    }
+    public function register(array $credentials): array
+    {
+        return [
+            'status' => 201,
+            'message' => 'User registered successfully'
+        ];
+    }
 }

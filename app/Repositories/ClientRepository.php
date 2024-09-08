@@ -58,4 +58,5 @@ class ClientRepository implements ClientRepositoryInterface
         }
         return $client;
     }
+
 }

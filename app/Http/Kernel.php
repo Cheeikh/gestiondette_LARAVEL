@@ -20,8 +20,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        // Ajout de notre middleware pour structurer les réponses
-        \App\Http\Middleware\ApiResponseMiddleware::class,
+        \App\Http\Middleware\FormatJsonResponse::class,
     ];
 
     /**
@@ -43,8 +42,7 @@ class Kernel extends HttpKernel
         'api' => [
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            // Ajout de notre middleware pour structurer les réponses
-            \App\Http\Middleware\ApiResponseMiddleware::class,
+            \App\Http\Middleware\FormatJsonResponse::class, // Formatage des réponses JSON pour les API
         ],
     ];
 
@@ -66,6 +64,5 @@ class Kernel extends HttpKernel
         // Ajout du middleware pour l'authentification avec Passport ou Sanctum
         'auth.passport' => \App\Http\Middleware\PassportAuthenticate::class,
         'auth.sanctum' => \App\Http\Middleware\SanctumAuthenticate::class,
-        'api.response' => \App\Http\Middleware\ApiResponseMiddleware::class,
     ];
 }

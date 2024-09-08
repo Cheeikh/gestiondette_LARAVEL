@@ -2,17 +2,22 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use App\Interfaces\UserServiceInterface;
-use App\Services\UserService;
-use App\Interfaces\ClientServiceInterface;
-use App\Services\ClientService;
-use App\Interfaces\UserRepositoryInterface;
-use App\Repositories\UserRepository;
-use App\Repositories\ClientRepository;
+use App\Interfaces\AuthentificationServiceInterface;
 use App\Interfaces\ClientRepositoryInterface;
-use App\Uploads\UploadInterface;
+use App\Interfaces\ClientServiceInterface;
+use App\Interfaces\UploadInterface;
+use App\Interfaces\UserRepositoryInterface;
+use App\Interfaces\UserServiceInterface;
+use App\Models\Client;
+use App\Observers\ClientObserver;
+use App\Repositories\ClientRepository;
+use App\Repositories\UserRepository;
+use App\Services\ClientService;
+use App\Services\UserService;
 use App\Uploads\Uploads;
+use Illuminate\Support\ServiceProvider;
+use App\Observers\UserObserver;
+use App\Models\User;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,10 +28,25 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(ClientRepositoryInterface::class, ClientRepository::class);
         $this->app->bind(UploadInterface::class, Uploads::class);
+
+        $this->app->singleton('userService', function ($app) {
+            return new UserService(
+                $app->make(UserRepositoryInterface::class),
+                $app->make(AuthentificationServiceInterface::class)
+            );
+        });
+
+        $this->app->singleton('clientService', function ($app) {
+            return new ClientService(
+                $app->make(ClientRepositoryInterface::class),
+                $app->make(UserService::class)
+            );
+        });
     }
 
     public function boot()
     {
-        // Autres configurations si nécessaire
+        User::observe(UserObserver::class);
+        Client::observe(ClientObserver::class);
     }
 }

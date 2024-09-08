@@ -6,38 +6,27 @@ use App\Interfaces\UserRepositoryInterface;
 use App\Models\User;
 use App\Exceptions\UserNotFoundException;
 use App\Exceptions\UserCreationException;
+use Illuminate\Database\QueryException;
 
 class UserRepository implements UserRepositoryInterface
 {
     public function create(array $data): User
     {
         try {
-            $user = User::create($data);
-            if (!$user) {
-                throw new UserCreationException("Échec de la création de l'utilisateur dans la base de données.");
-            }
-            return $user;
-        } catch (\Exception $e) {
+            return User::create($data);
+        } catch (QueryException $e) {
             throw new UserCreationException("Erreur lors de la création de l'utilisateur : " . $e->getMessage());
         }
     }
 
-    public function findById(int $id): User
+    public function findById(int $id): ?User
     {
-        $user = User::find($id);
-        if (!$user) {
-            throw new UserNotFoundException("Utilisateur avec l'ID $id non trouvé.");
-        }
-        return $user;
+        return User::find($id);
     }
 
-    public function findByLogin(string $login): User
+    public function findByLogin(string $login): ?User
     {
-        $user = User::where('login', $login)->first();
-        if (!$user) {
-            throw new UserNotFoundException("Utilisateur avec le login '$login' non trouvé.");
-        }
-        return $user;
+        return User::where('login', $login)->first();
     }
 
     public function getAll(): array

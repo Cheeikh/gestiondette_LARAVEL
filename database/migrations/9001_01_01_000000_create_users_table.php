@@ -13,10 +13,13 @@ class CreateUsersTable extends Migration
             $table->string('nom');
             $table->string('prenom');
             $table->string('login')->unique();
+            $table->string('email')->unique(); // Ajout de l'email unique
             $table->string('password');
-            $table->foreignId('role_id')->constrained('roles');
-            $table->string('photo'); // Ajout de la colonne photo
+            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
+            $table->string('photo_cloud')->nullable();  // Lien vers la photo sur Cloudinary
+            $table->string('photo_local')->nullable();  // Lien vers la photo en stockage local
             $table->boolean('active')->default(true);
+            $table->rememberToken(); // Gestion des sessions persistantes
             $table->timestamps();
         });
     }

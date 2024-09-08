@@ -12,11 +12,10 @@ class Client extends Model
     protected $fillable = [
         'surname',
         'telephone',
-        'email',  // Ajout du champ email
+        'email',
         'adresse',
         'user_id',
         'active',
-        'photo', 
     ];
 
     public function user()
@@ -26,7 +25,11 @@ class Client extends Model
 
     public function getPhotoAttribute()
     {
-        // Retourne l'URL de l'avatar par défaut si aucune photo n'est définie
-        return $this->attributes['photo'] ?? 'https://url-to-default-avatar';
+        if ($this->user && $this->user->photo_local) {
+            // Adjusts the path for correct web access, assuming photo_local is already a full path
+            return asset($this->user->photo_local);
+        }
+        return asset('images/Profile-Avatar-PNG.png'); // Default image if no photo is associated
     }
+
 }

@@ -2,38 +2,51 @@
 
 namespace App\Services;
 
+use App\Interfaces\AuthentificationServiceInterface;
 use App\Interfaces\UserRepositoryInterface;
 use App\Interfaces\UserServiceInterface;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use App\Events\UserRegistering;
+
 
 class UserService implements UserServiceInterface
 {
-    protected $userRepository;
+    protected UserRepositoryInterface $userRepository;
+    protected AuthentificationServiceInterface $authService;
 
-    public function __construct(UserRepositoryInterface $userRepository)
+    public function __construct(
+        UserRepositoryInterface          $userRepository,
+        AuthentificationServiceInterface $authService
+    )
     {
         $this->userRepository = $userRepository;
+        $this->authService = $authService;
     }
 
-    public function registerUser(array $data): User
+    public function registerUser(array $data, $photo = null): User
     {
-        $data['password'] = Hash::make($data['password']);
-        return $this->userRepository->create($data);  // Utilisation de -> au lieu de .
+        $user = $this->userRepository->create($data);
+        event(new UserRegistering($user, $photo));
+        return $user;
     }
 
     public function getAllUsers(): array
     {
-        return $this->userRepository->getAll();  // Utilisation de -> au lieu de .
+        return $this->userRepository->getAll();
     }
 
     public function getUsersByRole(string $role): array
     {
-        return $this->userRepository->getByRole($role);  // Utilisation de -> au lieu de .
+        return $this->userRepository->getByRole($role);
     }
 
     public function getUsersByRoleAndActive(string $role, bool $active): array
     {
-        return $this->userRepository->getByRoleAndActive($role, $active);  // Utilisation de -> au lieu de .
+        return $this->userRepository->getByRoleAndActive($role, $active);
+    }
+
+    public function login(array $credentials): array
+    {
+        return $this->authService->login($credentials);
     }
 }

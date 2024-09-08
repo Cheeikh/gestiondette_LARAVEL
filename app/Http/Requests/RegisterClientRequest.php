@@ -23,8 +23,8 @@ class RegisterClientRequest extends FormRequest
                 'regex:/^[0-9]{9}$/'
             ],
             'adresse' => 'nullable|string|max:255',
-            'photo' => 'nullable|image|max:1024', // Valide l'image, doit être inférieure à 1 Mo (1024 Ko)
-            'user' => 'nullable|array',
+            'email' => 'required|string|email|max:255|unique:clients,email',
+            'user' => 'sometimes|array',
             'user.nom' => 'required_with:user|string|max:255',
             'user.prenom' => 'required_with:user|string|max:255',
             'user.login' => 'required_with:user|string|unique:users,login|max:255',
@@ -38,6 +38,8 @@ class RegisterClientRequest extends FormRequest
                 'regex:/[@$!%*?&]/', // Doit contenir au moins un caractère spécial
             ],
             'user.role_id' => 'required_with:user|integer|exists:roles,id', // Assure que le rôle est valide
+            'user.photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',  // Validation pour la photo
+
         ];
     }
 
@@ -63,6 +65,4 @@ class RegisterClientRequest extends FormRequest
             'user.role_id.exists' => 'Le rôle sélectionné est invalide.',
         ];
     }
-
-    
 }

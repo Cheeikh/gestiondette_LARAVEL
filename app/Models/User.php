@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Laravel\Passport\HasApiTokens; 
+use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -15,10 +15,12 @@ class User extends Authenticatable
         'nom',
         'prenom',
         'login',
+        'email',
         'password',
         'role_id',
         'active',
-        'photo', 
+        'photo_cloud',
+        'photo_local',
     ];
 
     protected $hidden = [
@@ -26,14 +28,22 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    // Relation avec le modèle Role
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
 
     public function client()
-{
-    return $this->hasOne(Client::class);
-}
+    {
+        return $this->hasOne(Client::class);
+    }
+
+    public function getPhotoUrlAttribute()
+    {
+        if ($this->photo_local) {
+            return asset($this->photo_local);
+        }
+        return asset('images/Profile-Avatar-PNG.png'); // Default image if no photo is associated
+    }
+
 }

@@ -2,6 +2,7 @@
 
 namespace App\Uploads;
 
+use App\Interfaces\UploadInterface;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class Uploads implements UploadInterface
@@ -9,14 +10,9 @@ class Uploads implements UploadInterface
     public function upload($file): string
     {
         $result = Cloudinary::upload($file->getRealPath(), [
-            'folder' => 'uploads',
-            'transformation' => [
-                'width' => 300,
-                'height' => 300,
-                'crop' => 'fit'
-            ],
+            'folder' => 'uploads'
         ]);
 
-        return $result->getSecurePath(); // Retourne le lien sécurisé de l'image
+        return $result->getSecurePath();
     }
 }

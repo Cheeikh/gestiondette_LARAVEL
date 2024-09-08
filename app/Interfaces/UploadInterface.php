@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Uploads;
+namespace App\Interfaces;
 
 interface UploadInterface
 {
