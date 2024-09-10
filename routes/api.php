@@ -1,37 +1,61 @@
 <?php
 
+use App\Http\Controllers\DetteController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ArticleController;
 
-// Préfixe pour la version 1 de l'API
 Route::prefix('v1')->group(function () {
 
-    // Routes publiques pour l'enregistrement et la connexion des utilisateurs
+    // Routes pour les utilisateurs
     Route::prefix('users')->group(function () {
-        Route::post('/register', [UserController::class, 'register']);  // Enregistrement des utilisateurs
+        Route::post('/', [UserController::class, 'register']);
     });
 
-    Route::post('/login', [UserController::class, 'login']);  // Connexion des utilisateurs
+    Route::post('/login', [UserController::class, 'login']);
 
-    // Routes protégées par l'authentification
+    Route::post('/register', [ClientController::class, 'createClientAccount']);
+
+
     Route::middleware('auth:api')->group(function () {
 
-        // Préfixe pour les routes des utilisateurs
         Route::prefix('users')->group(function () {
-            Route::get('/', [UserController::class, 'index']);  // Lister tous les utilisateurs
-            Route::get('/role', [UserController::class, 'getByRole']);  // Obtenir les utilisateurs par rôle
-            Route::get('/me', [UserController::class, 'user']);  // Récupérer les informations de l'utilisateur connecté
-            Route::post('/logout', [UserController::class, 'logout']);  // Déconnexion de l'utilisateur
-            Route::post('/refresh', [UserController::class, 'refresh']);  // Rafraîchir le token d'accès
+            Route::get('/', [UserController::class, 'index']);
+            Route::get('/me', [UserController::class, 'user']);
+            Route::post('/logout', [UserController::class, 'logout']);
+            Route::post('/refresh', [UserController::class, 'refresh']);
         });
 
-        // Préfixe pour les routes des clients
+        // Routes pour les clients
         Route::prefix('clients')->group(function () {
-            Route::get('/', [ClientController::class, 'index']);  // Lister tous les clients
-            Route::post('/', [ClientController::class, 'store']);  // Enregistrer un nouveau client
-            Route::get('/{id}', [ClientController::class, 'show']);  // Obtenir les informations d'un client par ID
-            Route::get('/{id}/user', [ClientController::class, 'showClientWithUser']);  // Obtenir les informations d'un client et son compte utilisateur
+            Route::get('/', [ClientController::class, 'index']);
+            Route::post('/', [ClientController::class, 'store']);
+            Route::get('/{id}', [ClientController::class, 'show']);
+            Route::get('/{id}/user', [ClientController::class, 'showClientWithUser']);
+            Route::get('/{clientId}/dettes', [ClientController::class, 'listDettes']);
+        });
+
+        // Routes pour les articles
+        Route::prefix('articles')->group(function () {
+            Route::get('/', [ArticleController::class, 'index']);
+            Route::post('/', [ArticleController::class, 'store']);
+            Route::get('/{id}', [ArticleController::class, 'show']);
+            Route::put('/{id}', [ArticleController::class, 'update']);
+            Route::delete('/{id}', [ArticleController::class, 'destroy']);
+            Route::post('/libelle', [ArticleController::class, 'getByLibelle']);
+            Route::patch('/{id}/qteStock', [ArticleController::class, 'updateStockById']);
+            Route::post('/all/qteStock', [ArticleController::class, 'updateStockForAll']);
+        });
+
+        // Routes pour les dettes
+        Route::prefix('dettes')->group(function () {
+            Route::get('/', [DetteController::class, 'listAll']);
+            Route::post('/', [DetteController::class, 'store']);
+            Route::get('/{id}', [DetteController::class, 'show']);
+            Route::post('/{id}/articles', [DetteController::class, 'listArticles']);
+            Route::get('/{id}/paiements', [DetteController::class, 'listPaiements']);
+            Route::post('/{id}/paiements', [DetteController::class, 'addPaiement']);
         });
     });
 });

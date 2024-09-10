@@ -13,21 +13,11 @@ class WelcomeMail extends Mailable
 
     public $user;
 
-    /**
-     * Créer une nouvelle instance de mailable.
-     *
-     * @param User $user
-     */
     public function __construct(User $user)
     {
         $this->user = $user;
     }
 
-    /**
-     * Construire le message.
-     *
-     * @return $this
-     */
     public function build()
     {
         return $this->subject('Bienvenue sur notre plateforme')

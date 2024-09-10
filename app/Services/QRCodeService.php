@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Interfaces\QRCodeServiceInterface;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-class QRCodeService
+class QRCodeService implements QRCodeServiceInterface
 {
     public function generate($data)
     {

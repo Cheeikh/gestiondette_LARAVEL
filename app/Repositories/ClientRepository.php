@@ -37,7 +37,7 @@ class ClientRepository implements ClientRepositoryInterface
 
         if (!is_null($hasUser)) {
             if ($hasUser) {
-                $query->whereHas('user');
+                $query->has('user');
             } else {
                 $query->doesntHave('user');
             }
@@ -49,7 +49,6 @@ class ClientRepository implements ClientRepositoryInterface
 
         return $query->get()->toArray();
     }
-
     public function findClientWithUser(int $id): Client
     {
         $client = Client::with('user')->find($id);
@@ -58,5 +57,4 @@ class ClientRepository implements ClientRepositoryInterface
         }
         return $client;
     }
-
 }

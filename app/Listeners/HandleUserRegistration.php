@@ -19,21 +19,18 @@ class HandleUserRegistration
     public function handle(UserRegistering $event)
     {
         $user = $event->user;
-        $photo = $event->photo;
+        $photo = $event->photo;  // Utilisez $photo comme défini dans l'événement
 
-        // Gestion de la photo de profil
         if ($photo) {
-            // Upload sur le cloud (Cloudinary)
+            // Upload de la photo
             $photoCloudUrl = $this->uploadService->upload($photo);
+            $photoLocalPath = $photo->store('uploads', 'public');
+            $photoLocalUrl = Storage::url($photoLocalPath);
 
-            // Stockage local
-            $photoLocalPath = $photo->store('uploads', 'public');  // Stockage local dans "storage/app/public/uploads"
-            $photoLocalUrl = Storage::url($photoLocalPath);  // Générer l'URL publique pour l'image locale
-
-            // Enregistrer les deux URLs (Cloud et Local)
             $user->photo_cloud = $photoCloudUrl;
             $user->photo_local = $photoLocalUrl;
         } else {
+            // Photo par défaut si aucune n'est fournie
             $user->photo_cloud = 'https://res.cloudinary.com/dvy0saazc/image/upload/v1725507238/uploads/ytk2cqqcoxvgcqap7lm5.jpg';
             $user->photo_local = null;
         }
@@ -41,7 +38,7 @@ class HandleUserRegistration
         // Hachage du mot de passe
         $user->password = Hash::make($user->password);
 
-        // Sauvegarder les modifications
+        // Sauvegarder l'utilisateur avec les informations de photo et mot de passe
         $user->save();
     }
 }

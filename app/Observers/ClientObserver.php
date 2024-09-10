@@ -8,7 +8,6 @@ use App\Events\ClientCreated;
 class ClientObserver
 {
 
-
     public function created(Client $client)
     {
         event(new ClientCreated($client));

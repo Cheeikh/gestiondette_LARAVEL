@@ -53,4 +53,23 @@ class ClientService implements ClientServiceInterface
     {
         return $this->clientRepository->findClientWithUser($id);
     }
+
+    public function createOrUpdateUserForClient(int $clientId, array $userData, $photo = null): Client
+    {
+        DB::beginTransaction();
+        try {
+            $client = $this->getClientById($clientId);
+            if (!$client->user_id) {
+                $userData['email'] = $userData['email'] ?? $client->email;
+                $user = UserFacade::registerUser($userData,$photo);
+                $client->user()->associate($user);
+                $client->save();
+            }
+            DB::commit();
+            return $client;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 }

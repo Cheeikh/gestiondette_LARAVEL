@@ -2,14 +2,14 @@
 
 namespace App\Services;
 
+use App\Interfaces\PDFServiceInterface;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class PDFService
+class PDFService implements PDFServiceInterface
 {
 
     public function createPDF($view, $data)
     {
-        // Generate the PDF from the view with the provided data.
         return Pdf::loadView($view, $data);
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\Client;
-use App\Services\PDFService;
-use App\Services\QRCodeService;
+use App\Interfaces\PDFServiceInterface as PDFService;
+use App\Interfaces\QRCodeServiceInterface as QRCodeService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,19 +29,25 @@ class SendClientWelcomeEmailJob implements ShouldQueue
 
     public function handle()
     {
+        // Générer le QR code pour le client
         $qrCode = $this->qrCodeService->generate($this->client->telephone);
+
+        // Déterminer le chemin de la photo
         $photoPath = $this->client->user && $this->client->user->photo_local ?
             public_path($this->client->user->photo_local) :
             public_path('images/Profile-Avatar-PNG.png');
 
+        // Encodage de la photo en base64
         $photoBase64 = base64_encode(file_get_contents($photoPath));
 
+        // Générer le PDF en passant les données à la vue
         $pdf = $this->pdfService->createPDF('fidelite.carte', [
             'client' => $this->client,
             'qrCode' => $qrCode,
             'photo' => $photoBase64
         ]);
 
+        // Envoyer l'e-mail avec le PDF en pièce jointe
         Mail::send('emails.client_fidelite', ['client' => $this->client], function ($message) use ($pdf) {
             $message->to($this->client->email)
                 ->subject('Votre carte de fidélité')

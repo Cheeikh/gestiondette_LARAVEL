@@ -10,6 +10,6 @@ interface UserRepositoryInterface
     public function findById(int $id): ?User;
     public function findByLogin(string $login): ?User;
     public function getAll(): array;
-    public function getByRole(string $role): array;
-    public function getByRoleAndActive(string $role, bool $active): array;
+    public function getByFilters($role = null, $active = null): array;
+
 }

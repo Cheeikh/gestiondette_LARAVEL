@@ -34,17 +34,20 @@ class UserRepository implements UserRepositoryInterface
         return User::all()->toArray();
     }
 
-    public function getByRole(string $role): array
+    public function getByFilters($role = null, $active = null): array
     {
-        return User::whereHas('role', function ($query) use ($role) {
-            $query->where('name', $role);
-        })->get()->toArray();
-    }
+        $query = User::query();
 
-    public function getByRoleAndActive(string $role, bool $active): array
-    {
-        return User::whereHas('role', function ($query) use ($role) {
-            $query->where('name', $role);
-        })->where('active', $active)->get()->toArray();
+        if ($role) {
+            $query->whereHas('role', function ($query) use ($role) {
+                $query->where('name', $role);
+            });
+        }
+
+        if (!is_null($active)) {
+            $query->where('active', $active);
+        }
+
+        return $query->get()->toArray();
     }
 }

@@ -10,4 +10,6 @@ interface ClientServiceInterface
     public function getAllClients(?string $comptes = null, ?string $active = null): array;
     public function getClientById(int $id): ?Client;
     public function getClientWithUser(int $id): ?Client;
+    public function createOrUpdateUserForClient(int $clientId, array $userData): Client;
+
 }

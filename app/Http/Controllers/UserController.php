@@ -4,27 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Facades\UserFacade;
 use App\Http\Requests\RegisterUserRequest;
-use App\Interfaces\UploadInterface;
 use Illuminate\Http\Request;
-use Laravel\Passport\RefreshTokenRepository;
-use Laravel\Passport\TokenRepository;
+
 
 class UserController extends Controller
 {
-    protected $tokenRepository;
-    protected $refreshTokenRepository;
-    protected $uploadService;
-
-    public function __construct(
-        TokenRepository $tokenRepository,
-        RefreshTokenRepository $refreshTokenRepository,
-        UploadInterface $uploadService
-    ) {
-        $this->tokenRepository = $tokenRepository;
-        $this->refreshTokenRepository = $refreshTokenRepository;
-        $this->uploadService = $uploadService;
-    }
-
     public function login(Request $request)
     {
         $credentials = $request->only('login', 'password');
@@ -48,24 +32,29 @@ class UserController extends Controller
         return response()->json($user, 201);
     }
 
-    public function index()
-    {
-        $users = UserFacade::getAllUsers();
-
-        return response()->json($users, 200);
-    }
-
-    public function getByRole(Request $request)
+    public function index(Request $request)
     {
         $role = $request->query('role');
         $active = $request->query('active');
 
-        $users = $active
-            ? UserFacade::getUsersByRoleAndActive($role, $active === 'oui')
-            : UserFacade::getUsersByRole($role);
+        $activeBool = null;  // Use null as the indeterminate value
+        if ($active === 'oui') {
+            $activeBool = true;
+        } elseif ($active === 'non') {
+            $activeBool = false;
+        }
+
+        if (!$role && is_null($activeBool)) {
+            $users = UserFacade::getAllUsers();
+        } else {
+
+            $users = UserFacade::getUsersByFilters($role, $activeBool);
+        }
 
         return response()->json($users, 200);
     }
+
+
 
     public function logout(Request $request)
     {
@@ -92,4 +81,5 @@ class UserController extends Controller
 
         return response()->json($user, 200);
     }
+
 }
