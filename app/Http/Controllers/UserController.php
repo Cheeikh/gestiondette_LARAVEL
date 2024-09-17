@@ -21,6 +21,24 @@ class UserController extends Controller
         return response()->json(['message' => 'Unauthorized'], 401);
     }
 
+    public function getUnreadNotifications(Request $request)
+    {
+        $user = $request->user();
+
+        $notifications = $user->unreadNotifications()->get();
+
+        return response()->json($notifications);
+    }
+
+    // Get read notifications for the user
+    public function getReadNotifications(Request $request)
+    {
+        $user = $request->user();
+
+        $notifications = $user->readNotifications()->get();
+
+        return response()->json($notifications);
+    }
 
     public function register(RegisterUserRequest $request)
     {
@@ -37,7 +55,7 @@ class UserController extends Controller
         $role = $request->query('role');
         $active = $request->query('active');
 
-        $activeBool = null;  // Use null as the indeterminate value
+        $activeBool = null;
         if ($active === 'oui') {
             $activeBool = true;
         } elseif ($active === 'non') {
@@ -53,8 +71,6 @@ class UserController extends Controller
 
         return response()->json($users, 200);
     }
-
-
 
     public function logout(Request $request)
     {
@@ -81,5 +97,6 @@ class UserController extends Controller
 
         return response()->json($user, 200);
     }
+
 
 }

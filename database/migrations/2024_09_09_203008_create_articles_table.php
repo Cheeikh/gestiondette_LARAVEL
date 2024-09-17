@@ -11,8 +11,9 @@ class CreateArticlesTable extends Migration
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
             $table->string('libelle')->unique();
-            $table->decimal('prix', 8, 2);  // Assuming maximum total price is less than 1 million with 2 decimal places
+            $table->decimal('prix', 8, 2);  // Prix avec deux décimales
             $table->integer('qteStock');
+            $table->integer('quantite_seuil')->default(0); // Ajout du champ quantite_seuil
             $table->timestamps();
         });
     }

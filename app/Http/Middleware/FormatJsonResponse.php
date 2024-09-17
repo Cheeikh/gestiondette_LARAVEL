@@ -3,76 +3,59 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log; // Import the Log facade
 
 class FormatJsonResponse
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param Request $request
-     * @param Closure $next
-     * @return mixed
-     */
-    public function handle(Request $request, Closure $next): mixed
+    public function handle(Request $request, Closure $next)
     {
         $response = $next($request);
 
+        // Only process JsonResponse instances
         if ($response instanceof JsonResponse) {
+            $data = json_decode($response->getContent(), true); // Decode to array
 
-            $data = $response->getData();
+            Log::info('Original Response Data:', $data); // Log original data for debugging
 
-            // Récupérer le code de statut de la réponse
             $statusCode = $response->getStatusCode();
+            $defaultMessage = $this->getDefaultMessageForStatusCode($statusCode);
 
-            // Messages par défaut en fonction du code de statut
-            $defaultMessages = $this->getDefaultMessageForStatusCode($statusCode);
+            // Check if 'data' key exists, and handle the case where it doesn't
+            $responseData = $data['data'] ?? $data; // Use entire response if 'data' key is absent
 
-            // Formater la réponse
+            // Formulate the new response structure
             $formattedResponse = [
                 'status' => $statusCode,
-                'data' => $data->data ?? null,
-                'message' => $data->message ?? $defaultMessages,
+                'data' => $responseData, // Use corrected data handling
+                'message' => $data['message'] ?? $defaultMessage
             ];
 
-            return response()->json($formattedResponse, $statusCode);
+            // Set the new JSON content and preserve headers
+            return response()->json($formattedResponse, $statusCode)
+                ->withHeaders($response->headers->all());
         }
 
         return $response;
     }
 
-    /**
-     * Récupérer un message par défaut en fonction du code de statut.
-     *
-     * @param int $statusCode
-     * @return string
-     */
     private function getDefaultMessageForStatusCode(int $statusCode): string
     {
-        switch ($statusCode) {
-            case 200:
-                return 'Requête traitée avec succès.';
-            case 201:
-                return 'Ressource créée avec succès.';
-            case 204:
-                return 'Aucun contenu.';
-            case 400:
-                return 'Requête invalide.';
-            case 401:
-                return 'Non autorisé. Veuillez vous authentifier.';
-            case 403:
-                return 'Accès refusé. Vous n\'avez pas les permissions nécessaires.';
-            case 404:
-                return 'Ressource non trouvée.';
-            case 405:
-                return 'Méthode non autorisée.';
-            case 422:
-                return 'Erreur de validation des données.';
-            case 500:
-                return 'Erreur interne du serveur.';
-            default:
-                return 'Une erreur est survenue.';
-        }
+        $messages = [
+            200 => 'Requête traitée avec succès.',
+            201 => 'Ressource créée avec succès.',
+            204 => 'Aucun contenu.',
+            400 => 'Requête invalide.',
+            401 => 'Non autorisé. Veuillez vous authentifier.',
+            403 => 'Accès refusé. Vous n\'avez pas les permissions nécessaires.',
+            404 => 'Ressource non trouvée.',
+            405 => 'Méthode non autorisée.',
+            422 => 'Erreur de validation des données.',
+            500 => 'Erreur interne du serveur.',
+            503 => 'Service indisponible.'
+        ];
+        return $messages[$statusCode] ?? 'Une erreur est survenue.';
     }
 }

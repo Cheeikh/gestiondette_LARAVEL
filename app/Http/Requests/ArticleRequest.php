@@ -8,15 +8,17 @@ class ArticleRequest extends FormRequest
 {
     public function authorize()
     {
-        return true;  // Ensure this is adjusted according to your application's authorization logic
+        // Implémentez votre logique d'autorisation ici
+        return true;
     }
 
     public function rules()
     {
         return [
             'libelle' => 'required|string|unique:articles,libelle',
-            'prix' => 'required|numeric|min:0',  // Ensure the price is non-negative
-            'qteStock' => 'required|integer|min:0'  // Ensure the quantity in stock is non-negative
+            'prix' => 'required|numeric|min:0',
+            'qteStock' => 'required|integer|min:0',
+            'quantite_seuil' => 'required|integer|min:0', // Ajout de la règle pour quantite_seuil
         ];
     }
 
@@ -30,7 +32,10 @@ class ArticleRequest extends FormRequest
             'prix.min' => 'Le prix doit être supérieur ou égal à zéro.',
             'qteStock.required' => 'La quantité en stock est obligatoire.',
             'qteStock.integer' => 'La quantité en stock doit être un nombre entier.',
-            'qteStock.min' => 'La quantité en stock doit être supérieure ou égale à zéro.'
+            'qteStock.min' => 'La quantité en stock doit être supérieure ou égale à zéro.',
+            'quantite_seuil.required' => 'La quantité seuil est obligatoire.',
+            'quantite_seuil.integer' => 'La quantité seuil doit être un nombre entier.',
+            'quantite_seuil.min' => 'La quantité seuil doit être supérieure ou égale à zéro.',
         ];
     }
 }

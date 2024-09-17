@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Channels\SmsChannel;
+use App\Interfaces\SmsServiceInterface;
 use App\Models\Client;
 use App\Models\User;
 
@@ -20,7 +22,11 @@ use App\Services\ArticleService;
 use App\Services\PDFService;
 use App\Services\QRCodeService;
 use App\Services\DetteService;
+use App\Services\NotificationService;
+use App\Services\DemandeService;
 
+
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\ServiceProvider;
 
 use App\Uploads\Uploads;
@@ -38,6 +44,9 @@ use App\Interfaces\ArticleServiceInterface;
 use App\Interfaces\PaiementRepositoryInterface;
 use App\Interfaces\DetteRepositoryInterface;
 use App\Interfaces\DetteServiceInterface;
+use App\Interfaces\NotificationServiceInterface;
+use App\Interfaces\DemandeServiceInterface;
+
 
 
 class AppServiceProvider extends ServiceProvider
@@ -56,6 +65,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PaiementRepositoryInterface::class, PaiementRepository::class);
         $this->app->bind(DetteRepositoryInterface::class, DetteRepository::class);
         $this->app->bind(DetteServiceInterface::class, DetteService::class);
+        $this->app->bind(NotificationServiceInterface::class, NotificationService::class);
+        $this->app->bind(DemandeServiceInterface::class, DemandeService::class);
 
         $this->app->singleton('userService', function ($app) {
             return new UserService(
@@ -83,6 +94,11 @@ class AppServiceProvider extends ServiceProvider
                 $app->make(PaiementRepositoryInterface::class),
             );
         });
+
+        Notification::extend('sms', function ($app) {
+            return new SmsChannel($app->make(SmsServiceInterface::class));
+        });
+
     }
 
     public function boot()

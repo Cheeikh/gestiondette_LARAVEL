@@ -18,10 +18,6 @@ interface DetteRepositoryInterface
 
     public function findById(int $id): ?Dette;
 
-
-
-
-
-
+    public function getPaidDebts();
 
 }

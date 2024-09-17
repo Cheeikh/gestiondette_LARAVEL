@@ -20,7 +20,7 @@ class ArticleService implements ArticleServiceInterface
         return $this->articleRepository->create($data);
     }
 
-    public function getAllArticles(?string $disponible): array
+    public function getAllArticles(?string $disponible)
     {
         if ($disponible === 'oui') {
             return $this->articleRepository->findAvailableArticles();
@@ -30,7 +30,6 @@ class ArticleService implements ArticleServiceInterface
             return $this->articleRepository->findAll();
         }
     }
-
 
     public function getArticleById(int $id): Article
     {
@@ -57,7 +56,6 @@ class ArticleService implements ArticleServiceInterface
     public function updateStock(int $id, int $qteStock): Article
     {
         $article = $this->getArticleById($id);
-        $article->qteStock = $qteStock;
         return $this->articleRepository->update($article, ['qteStock' => $qteStock]);
     }
 
@@ -66,12 +64,9 @@ class ArticleService implements ArticleServiceInterface
         $updatedArticles = [];
         foreach ($articlesData as $articleData) {
             $article = $this->getArticleById($articleData['id']);
-            $article->qteStock = $articleData['qteStock'];
             $updatedArticle = $this->articleRepository->update($article, ['qteStock' => $articleData['qteStock']]);
             $updatedArticles[] = $updatedArticle;
         }
         return $updatedArticles;
     }
-
-
 }

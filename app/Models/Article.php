@@ -9,26 +9,16 @@ class Article extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
     protected $fillable = [
         'libelle',
         'prix',
-        'qteStock'
+        'qteStock',
+        'quantite_seuil',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
     protected $casts = [
         'prix' => 'float',
-        'qteStock' => 'integer'
+        'qteStock' => 'integer',
+        'quantite_seuil' => 'integer', // Casting de 'quantite_seuil' en entier
     ];
-
-
 }

@@ -1,123 +1,122 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte de fidélité</title>
+    <title>Carte de Fidélité</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f2f2f2;
+            background-color: #f1f1f1;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
-        .card {
-            width: 400px;
-            background-color: #fff;
+
+        .badge-card {
+            width: 320px;
+            height: 460px;
+            background: #38598b;
             border-radius: 20px;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-left: 25%;
+            margin-top: 20%;
             text-align: center;
-            padding: 0;
-        }
-        .card-header {
-            background: linear-gradient(45deg, #ff7e5f, #feb47b);
-            color: white;
-            padding: 20px;
-            font-size: 1.5em;
             position: relative;
+            overflow: hidden;
+            border: 1px solid #ddd;
         }
-        .card-header img {
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bolder;
+            letter-spacing: 1px;
+        }
+
+        .client-photo img {
+            width: 100px;
+            height: 100px;
+            margin-top: 30px ;
             border-radius: 50%;
-            width: 90px;
-            height: 90px;
-            border: 4px solid white;
-            margin-bottom: 10px;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(44, 62, 80, 0.2);
         }
-        .info-section {
-            padding: 15px 25px;
+
+        .client-name {
+            margin-top: 25px;
+            font-size: 22px;
+            color: white;
+            font-weight: bolder;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, white, transparent);
             margin: 15px 0;
-            text-align: left;
         }
-        .info-section p {
-            margin: 10px 0;
-            font-size: 1.1em;
-        }
-        .info-label {
-            font-weight: bold;
-            color: #e67e22;
-        }
+
         .qr-code img {
             width: 160px;
             height: 160px;
-            margin: 20px auto;
-            display: block;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 15px;
+            background-color: #fff;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
         }
+
         .footer {
-            background-color: #ff7e5f;
+            font-size: 11px;
             color: white;
-            padding: 15px;
-            font-size: 0.9em;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin-top: 15px;
+            font-weight: 300;
         }
-        .footer img {
-            width: 60px;
-            height: auto;
-            margin-top: 10px;
-        }
-        /* Card shadow effect */
-        .card::before {
-            content: '';
+
+        .background-pattern {
             position: absolute;
-            top: 0;
+            bottom: 0;
             left: 0;
             right: 0;
-            height: 150px;
-            background: rgba(0, 0, 0, 0.1);
-            z-index: 1;
+            height: 160px;
+            background: url("{{ asset('assets/flat-geometric-background_23-2148948420-removebg-preview 1.svg') }}") no-repeat center center;
+            background-size: cover;
+
         }
     </style>
 </head>
-
 <body>
 
-<div class="card">
-    <div class="card-header">
-        <!-- Utiliser une image par défaut si $photo est vide -->
-        <img src="{{ $photo ? 'data:image/png;base64,' . $photo : 'https://res.cloudinary.com/dvy0saazc/image/upload/v1725507238/uploads/ytk2cqqcoxvgcqap7lm5.jpg' }}" alt="Profile photo of user" style="width: 100%; height: 100%; object-fit: cover;">
-        <h1>Carte de fidélité</h1>
-    </div>
+<div class="badge-card">
+    <h1>Carte De Fidélité</h1>
+    <div class="client-photo">
+        <img src="{{ $photo ? 'data:image/png;base64,' . $photo : 'https://res.cloudinary.com/dvy0saazc/image/upload/v1725507238/uploads/ytk2cqqcoxvgcqap7lm5.jpg' }}" alt="Photo du client">
 
-    <div class="info-section">
-        <p><span class="info-label">Nom :</span> {{ $client->surname }}</p>
-        <p><span class="info-label">Téléphone :</span> {{ $client->telephone }}</p>
-        <p><span class="info-label">Email :</span> {{ $client->email }}</p>
     </div>
+    @if ($client->user)
 
-    @if($client->user)
-        <div class="info-section">
-            <h2>Compte utilisateur</h2>
-            <p><span class="info-label">Nom d'utilisateur :</span> {{ $client->user->nom }}</p>
-            <p><span class="info-label">Email :</span> {{ $client->user->email }}</p>
-            <p><span class="info-label">État du compte :</span> {{ $client->user->etat }}</p>
-        </div>
+        <div class="client-name">{{ $client->user->nom .' '. $client->user->prenom }}</div>
+
+        <div class="divider"></div>
     @endif
 
+
     <div class="qr-code">
-        <img src="data:image/png;base64,{{ base64_encode($qrCode) }}" alt="QR Code" style="width: 160px; height: 160px; border-radius: 8px;">
+        <img src="data:image/png;base64,{{ base64_encode($qrCode) }}" alt="QR Code">
     </div>
+    <div class="footer">Merci de votre fidélité !</div>
+    <div class="background-pattern"></div>
 
-    <div class="footer">
-        <p>Merci de votre fidélité !</p>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Loyalty_card_generic_icon.svg/1024px-Loyalty_card_generic_icon.svg.png" alt="Logo fidélité">
-    </div>
 </div>
-
 </body>
 </html>

@@ -10,8 +10,6 @@ use App\Listeners\HandleUserRegistration;
 use App\Listeners\SendClientWelcomeEmail;
 use App\Listeners\SendWelcomeEmail;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use App\Events\ClientCreating;
-use App\Listeners\CreateClientTransaction;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -25,9 +23,6 @@ class EventServiceProvider extends ServiceProvider
         ],
         ClientCreated::class => [
             SendClientWelcomeEmail::class,
-        ],
-        ClientCreating::class => [
-            CreateClientTransaction::class,
         ],
     ];
 

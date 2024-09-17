@@ -11,13 +11,17 @@ class ClientController extends Controller
 {
     public function store(RegisterClientRequest $request)
     {
-        $client = ClientFacade::registerClient(
-            $request->validated(),
-            $request->file('user.photo')
-        );
-
-        return response()->json($client, 201);
+        try {
+            $client = ClientFacade::registerClient(
+                $request->validated(),
+                $request->file('user.photo')
+            );
+            return response()->json($client, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to register client', 'message' => $e->getMessage()], 400);
+        }
     }
+
 
     public function index(Request $request)
     {
@@ -31,15 +35,31 @@ class ClientController extends Controller
 
     public function show($id)
     {
-        $client = ClientFacade::getClientById($id);
-        return response()->json($client, 200);
+        try {
+            $client = ClientFacade::getClientById($id);
+            if (!$client) {
+                return response()->json(['error' => 'Client not found'], 404);
+            }
+            return response()->json($client, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to retrieve client', 'message' => $e->getMessage()], 400);
+        }
     }
+
 
     public function showClientWithUser($id)
     {
-        $clientWithUser = ClientFacade::getClientWithUser($id);
-        return response()->json($clientWithUser, 200);
+        try {
+            $clientWithUser = ClientFacade::getClientWithUser($id);
+            if (!$clientWithUser) {
+                return response()->json(['error' => 'Client or user not found'], 404);
+            }
+            return response()->json($clientWithUser, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to retrieve client with user', 'message' => $e->getMessage()], 400);
+        }
     }
+
 
     public function createClientAccount(Request $request)
     {
@@ -61,9 +81,31 @@ class ClientController extends Controller
         }
     }
 
+
     public function listDettes($clientId)
     {
-        $dettes = DetteFacade::getDettesByClientId($clientId);
-        return response()->json($dettes, 201);
+        try {
+            $dettes = DetteFacade::getDettesByClientId($clientId);
+            return response()->json($dettes, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to retrieve debts', 'message' => $e->getMessage()], 400);
+        }
     }
+
+    public function getUnreadNotifications(Request $request)
+    {
+        $client = $request->user()->client;  // Assurez-vous que l'utilisateur connecté a un 'client' associé
+        $notifications = $client->unreadNotifications;
+
+        return response()->json($notifications);
+    }
+
+    public function getReadNotifications(Request $request)
+    {
+        $client = $request->user()->client;  // Assurez-vous que l'utilisateur connecté a un 'client' associé
+        $notifications = $client->readNotifications;
+
+        return response()->json($notifications);
+    }
+
 }

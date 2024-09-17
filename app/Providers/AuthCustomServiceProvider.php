@@ -13,10 +13,10 @@ class AuthCustomServiceProvider extends ServiceProvider
     {
         $this->app->bind(AuthentificationServiceInterface::class, function ($app) {
             $config = Yaml::parseFile(config_path('auth_services.yaml'));
-            $defaultService = $config['auth_services']['default'];  // Récupérer le service par défaut (Passport ou Sanctum)
-            $serviceClass = $config['auth_services']['services'][$defaultService]['class']; // Classe du service
+            $defaultService = $config['auth_services']['default'];
+            $serviceClass = $config['auth_services']['services'][$defaultService]['class'];
 
-            return new $serviceClass();  // Instancier dynamiquement le service d'authentification
+            return new $serviceClass();
         });
     }
 

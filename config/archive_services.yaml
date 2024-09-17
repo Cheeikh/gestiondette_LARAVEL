@@ -1,0 +1,7 @@
+archive_services:
+  default: mongodb
+  services:
+    mongodb:
+      class: App\Services\ArchiveMongodbService
+    firebase:
+      class: App\Services\ArchiveFirebaseService

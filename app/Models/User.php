@@ -46,4 +46,14 @@ class User extends Authenticatable
         return asset('images/Profile-Avatar-PNG.png'); // Default image if no photo is associated
     }
 
+    public function unreadNotifications()
+    {
+        return $this->notifications()->whereNull('read_at');
+    }
+
+    // Method to retrieve read notifications
+    public function readNotifications()
+    {
+        return $this->notifications()->whereNotNull('read_at');
+    }
 }

@@ -15,6 +15,8 @@ class CreateClientsTable extends Migration
             $table->string('email')->unique();  // Ajout du champ email
             $table->string('adresse')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users');
+            $table->foreignId('category_id')->default(3)->constrained('categories');
+            $table->decimal('max_montant', 10, 2)->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();
         });

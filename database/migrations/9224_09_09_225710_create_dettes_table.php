@@ -10,9 +10,10 @@ class CreateDettesTable extends Migration
     {
         Schema::create('dettes', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('client_id');  // Lien avec la table clients
+            $table->unsignedBigInteger('client_id');
             $table->date('date');
-            $table->decimal('montant', 10, 2);  // Montant de la dette
+            $table->date('date_echeance');  // Date d'échéance de la dette
+            $table->decimal('montant', 10, 2);
             $table->timestamps();
 
             $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');

@@ -18,18 +18,18 @@ class RegisterUserRequest extends FormRequest
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'login' => 'required|string|unique:users,login|max:255',
-            'email' => 'required|email|unique:users,email|max:255', // Validation de l'email
+            'email' => 'required|email|unique:users,email|max:255',
             'password' => [
                 'required',
                 'string',
                 'min:5',
-                'regex:/[A-Z]/',  // Doit contenir au moins une majuscule
-                'regex:/[a-z]/',  // Doit contenir au moins une minuscule
-                'regex:/[0-9]/',  // Doit contenir au moins un chiffre
-                'regex:/[@$!%*?&]/',  // Doit contenir au moins un caractère spécial
+                'regex:/[A-Z]/',
+                'regex:/[a-z]/',
+                'regex:/[0-9]/',
+                'regex:/[@$!%*?&]/',
             ],
-            'role_id' => 'required|exists:roles,id',  // Validation par ID de rôle
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',  // Validation pour la photo
+            'role_id' => 'required|exists:roles,id|in:1,2',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
 
@@ -51,6 +51,7 @@ class RegisterUserRequest extends FormRequest
             'photo.image' => 'Le fichier doit être une image.',
             'photo.mimes' => 'Le fichier doit être de type jpeg, png, jpg ou gif.',
             'photo.max' => 'La taille de l\'image ne doit pas dépasser 2MB.',
+            'role_id.in' => 'Le rôle sélectionné est invalide. Seules les valeurs 1 ou 2 sont acceptées.',
         ];
     }
 }

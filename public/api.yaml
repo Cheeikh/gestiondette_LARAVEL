@@ -1,12 +1,11 @@
 openapi: 3.0.0
 info:
-  title: Gestion Dette API
+  title: API Gestion des Utilisateurs et Articles
   version: 1.0.0
-  description: API pour la gestion des dettes
-
+  description: API pour la gestion des utilisateurs, articles, et dettes, incluant l'authentification, la gestion des rôles et la gestion des clients.
 servers:
   - url: http://localhost:8000/api/v1
-    description: Serveur local
+    description: Local server
 
 components:
   securitySchemes:
@@ -15,258 +14,1276 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
-security:
-  - BearerAuth: []
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        login:
+          type: string
+          description: Nom d'utilisateur ou email
+          example: "john.doe"
+        password:
+          type: string
+          description: Mot de passe
+          example: "Password123@"
+
+    RegisterUserRequest:
+      type: object
+      properties:
+        nom:
+          type: string
+          description: Nom de l'utilisateur
+          example: "John"
+        prenom:
+          type: string
+          description: Prénom de l'utilisateur
+          example: "Doe"
+        login:
+          type: string
+          description: Nom d'utilisateur (unique)
+          example: "john.doe"
+        email:
+          type: string
+          description: Email de l'utilisateur
+          example: "john.doe@example.com"
+        password:
+          type: string
+          description: Mot de passe avec exigences spécifiques (Majuscule, minuscule, chiffres, caractères spéciaux)
+          example: "Password123@"
+        role_id:
+          type: integer
+          description: ID du rôle de l'utilisateur
+          example: 2
+        photo:
+          type: string
+          format: binary
+          description: Photo de profil (image)
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+        surname:
+          type: string
+          description: Nom du client
+        telephone:
+          type: string
+          description: Numéro de téléphone du client
+        email:
+          type: string
+          description: Email du client
+        adresse:
+          type: string
+          description: Adresse du client
+        user:
+          $ref: '#/components/schemas/User'
+        active:
+          type: boolean
+          description: Statut d'activation du client
+
+
+
+    Paiement:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID du paiement
+        dette_id:
+          type: integer
+          description: ID de la dette associée
+        montant:
+          type: number
+          description: Montant du paiement
+        date:
+          type: string
+          format: date
+    Notification:
+      type: object
+      properties:
+        client_id:
+          type: integer
+        total_due:
+          type: number
+          format: float
+        message:
+          type: string
+
+    DetteRequest:
+      type: object
+      required:
+        - clientId
+        - date_echeance
+        - articles
+      properties:
+        clientId:
+          type: integer
+          description: ID du client, requis pour identifier le client associé à la dette.
+        date_echeance:
+          type: string
+          format: date
+          description: La date d'échéance de la dette, doit être aujourd'hui ou une date future.
+        articles:
+          type: array
+          description: Liste des articles inclus dans la dette. Chaque article nécessite un ID, une quantité vendue et un prix de vente.
+          items:
+            type: object
+            required:
+              - articleId
+              - qteVente
+              - prixVente
+            properties:
+              articleId:
+                type: integer
+                description: ID de l'article, doit exister dans la base de données.
+              qteVente:
+                type: integer
+                description: Quantité vendue de l'article, doit être un entier positif.
+              prixVente:
+                type: number
+                description: Prix de vente de l'article par unité, doit être un nombre positif.
+        paiement:
+          type: array
+          description: Liste des paiements effectués pour la dette, chaque paiement peut inclure un montant.
+          items:
+            type: object
+            properties:
+              montant:
+                type: number
+                description: Montant du paiement, facultatif et doit être un nombre positif si fourni.
+
+
+
+    RegisterClientRequest:
+      type: object
+      properties:
+        surname:
+          type: string
+          description: Nom du client
+          example: "Doe"
+        telephone:
+          type: string
+          description: Numéro de téléphone du client
+          example: "0606060606"
+        adresse:
+          type: string
+          description: Adresse du client
+          example: "123 Rue de Paris"
+        email:
+          type: string
+          description: Email du client
+          example: "doe@example.com"
+        user:
+          type: object
+          properties:
+            nom:
+              type: string
+              description: Nom de l'utilisateur associé
+              example: "John"
+            prenom:
+              type: string
+              description: Prénom de l'utilisateur associé
+              example: "Doe"
+            login:
+              type: string
+              description: Nom d'utilisateur unique
+              example: "john.doe"
+            password:
+              type: string
+              description: Mot de passe avec exigences spécifiques (Majuscule, minuscule, chiffres, caractères spéciaux)
+              example: "Password123@"
+            role_id:
+              type: integer
+              description: ID du rôle de l'utilisateur
+              example: 2
+            photo:
+              type: string
+              format: binary
+              description: Photo de profil de l'utilisateur (image)
+    Dette:
+      type: object
+      properties:
+        id:
+          type: integer
+        montant:
+          type: number
+        date:
+          type: string
+          format: date
+        client_id:
+          type: integer
+          description: ID du client associé à la dette
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        nom:
+          type: string
+          description: Nom de l'utilisateur
+        prenom:
+          type: string
+          description: Prénom de l'utilisateur
+        login:
+          type: string
+          description: Nom d'utilisateur unique
+        email:
+          type: string
+          description: Adresse email de l'utilisateur
+        role_id:
+          type: integer
+          description: ID du rôle de l'utilisateur
+        active:
+          type: boolean
+          description: Statut d'activation de l'utilisateur
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID unique de l'article
+        libelle:
+          type: string
+          description: Nom de l'article
+          example: "Article A"
+        prix:
+          type: number
+          format: float
+          description: Prix de l'article
+          example: 19.99
+        qteStock:
+          type: integer
+          description: Quantité en stock
+          example: 100
+
+    ArticleRequest:
+      type: object
+      properties:
+        libelle:
+          type: string
+          description: Nom de l'article (unique)
+          example: "Article A"
+        prix:
+          type: number
+          format: float
+          description: Prix de l'article
+          example: 19.99
+        qteStock:
+          type: integer
+          description: Quantité en stock
+          example: 100
+        quantite_seuil:
+          type: integer
+          description: Quantité seuil pour l'article
+          example: 10
+
+
+    CreateDemande:
+      type: object
+      required:
+        - articles
+      properties:
+        description:
+          type: string
+          description: Optional description of the demande
+          example: "Bulk order for April"
+        articles:
+          type: array
+          description: List of articles included in the demande
+          items:
+            type: object
+            required:
+              - id
+              - quantity
+              - price
+            properties:
+              id:
+                type: integer
+                description: ID of the article
+                example: 101
+              quantity:
+                type: integer
+                description: Quantity of the article requested
+                example: 10
+              price:
+                type: number
+                format: float
+                description: Price per unit of the article
+                example: 150.00
+
+    Demande:
+      type: object
+      required:
+        - client_id
+        - total_amount
+        - articles
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the Demande
+          example: 1
+        total_amount:
+          type: number
+          format: float
+          description: Total amount of the demande
+          example: 1500.50
+        description:
+          type: string
+          description: Optional description of the demande
+          example: "Bulk order for April"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the demande was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the demande was last updated
+        articles:
+          type: array
+          description: List of articles included in the demande
+          items:
+            $ref: '#/components/schemas/ArticleDemande'
+
+    ArticleDemande:
+      type: object
+      required:
+        - id
+        - quantity
+        - price
+      properties:
+        id:
+          type: integer
+          description: ID of the article
+          example: 101
+        quantity:
+          type: integer
+          description: Quantity of the article requested
+          example: 10
+        price:
+          type: number
+          format: float
+          description: Price per unit of the article
+          example: 150.00
 
 paths:
-  /users:
-    get:
-      summary: Liste des utilisateurs
-      operationId: getUsers
-      tags:
-        - Users
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Liste des utilisateurs
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 200
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        nom:
-                          type: string
-                        prenom:
-                          type: string
-                        login:
-                          type: string
-                        role_id:
-                          type: integer
-                        role_name:
-                          type: string
-                        active:
-                          type: boolean
-                  message:
-                    type: string
-                    example: Liste des utilisateurs récupérée avec succès
-
-  /users/register:
-    post:
-      summary: Créer un nouvel utilisateur
-      operationId: createUser
-      tags:
-        - Users
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - nom
-                - prenom
-                - login
-                - password
-                - role_id
-              properties:
-                nom:
-                  type: string
-                prenom:
-                  type: string
-                login:
-                  type: string
-                password:
-                  type: string
-                role_id:
-                  type: integer
-      responses:
-        '201':
-          description: Utilisateur créé avec succès
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 201
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      nom:
-                        type: string
-                      prenom:
-                        type: string
-                      login:
-                        type: string
-                      role_id:
-                        type: integer
-                      role_name:
-                        type: string
-                  message:
-                    type: string
-                    example: Utilisateur créé avec succès
-
   /login:
     post:
-      summary: Connexion d'un utilisateur
-      operationId: loginUser
       tags:
-        - Users
+        - Authentification
+      summary: Connexion utilisateur
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - login
-                - password
-              properties:
-                login:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/LoginRequest'
       responses:
-        '200':
+        200:
           description: Connexion réussie
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      access_token:
-                        type: string
-                      token_type:
-                        type: string
-                      expires_at:
-                        type: string
-                      refresh_token:
-                        type: string
-                      user:
-                        type: object
-                        properties:
-                          id:
-                            type: integer
-                          nom:
-                            type: string
-                          prenom:
-                            type: string
-                          login:
-                            type: string
-                          role_id:
-                            type: integer
-                          role_name:
-                            type: string
-                          active:
-                            type: boolean
-                  message:
+                  access_token:
                     type: string
-                    example: Connexion réussie
-        '401':
-          description: Échec de la connexion (identifiants invalides)
+                    description: Jeton d'accès Bearer
+                  token_type:
+                    type: string
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                    description: Temps d'expiration du token en secondes
+        401:
+          description: Non autorisé
+      security:
+        - []
+
+  /users:
+    post:
+      tags:
+        - Utilisateurs
+      summary: Enregistrement d'un nouvel utilisateur
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+      responses:
+        201:
+          description: Utilisateur enregistré avec succès
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: integer
-                    example: 401
-                  message:
+                  access_token:
                     type: string
-                    example: Identifiants invalides
+                    description: Jeton d'accès Bearer
+                  user:
+                    $ref: '#/components/schemas/RegisterUserRequest'
+        400:
+          description: Erreur de validation
+
+    get:
+      tags:
+        - Utilisateurs
+      summary: Lister les utilisateurs avec filtres optionnels
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filtrer par rôle
+            example: Administrateur
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filtrer par statut d'activation (oui ou non)
+            example: oui
+      responses:
+        200:
+          description: Liste des utilisateurs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegisterUserRequest'
+        401:
+          description: Non autorisé
 
   /users/me:
     get:
-      summary: Récupérer les informations de l'utilisateur connecté
-      operationId: getCurrentUser
       tags:
-        - Users
+        - Utilisateurs
+      summary: Récupérer les informations de l'utilisateur connecté
       security:
         - BearerAuth: []
       responses:
-        '200':
-          description: Informations de l'utilisateur connecté
+        200:
+          description: Informations de l'utilisateur récupérées
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
+                  id:
                     type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      nom:
-                        type: string
-                      prenom:
-                        type: string
-                      login:
-                        type: string
-                      role_id:
-                        type: integer
-                      role_name:
-                        type: string
-                      active:
-                        type: boolean
-                  message:
+                    example: 1
+                  nom:
                     type: string
-                    example: Informations de l'utilisateur récupérées avec succès
+                    example: John
+                  prenom:
+                    type: string
+                    example: Doe
+                  email:
+                    type: string
+                    example: john.doe@example.com
+                  role:
+                    type: string
+                    example: Administrateur
 
   /users/logout:
     post:
-      summary: Déconnexion de l'utilisateur
-      operationId: logoutUser
       tags:
-        - Users
+        - Authentification
+      summary: Déconnexion de l'utilisateur
       security:
         - BearerAuth: []
       responses:
-        '200':
-          description: Utilisateur déconnecté avec succès
+        200:
+          description: Déconnexion réussie
+
+  /clients:
+    get:
+      tags:
+        - Clients
+      summary: Lister les clients avec des filtres optionnels
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: comptes
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filtrer les clients par comptes utilisateur associés (oui|non)
+            example: oui
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filtrer les clients par statut d'activation (oui|non)
+            example: oui
+      responses:
+        200:
+          description: Liste des clients récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+        401:
+          description: Non autorisé
+
+
+    post:
+      tags:
+        - Clients
+      summary: Enregistrer un nouveau client, avec ou sans compte utilisateur associé
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                surname:
+                  type: string
+                  description: Nom du client
+                  example: "Doe"
+                telephone:
+                  type: string
+                  description: Numéro de téléphone du client
+                  example: "0606060606"
+                adresse:
+                  type: string
+                  description: Adresse du client
+                  example: "123 Rue de Paris"
+                email:
+                  type: string
+                  description: Email du client
+                  example: "doe@example.com"
+                category_id:
+                  type: integer
+                  description: ID de la catégorie du client
+                  example: 2 # Assuming '2' is for Silver
+                max_montant:
+                  type: number
+                  description: Montant maximum que le client peut dépenser (uniquement pour la catégorie Silver)
+                  example: 500.00
+                user[nom]:
+                  type: string
+                  description: Nom de l'utilisateur associé
+                  example: "John"
+                user[prenom]:
+                  type: string
+                  description: Prénom de l'utilisateur associé
+                  example: "Doe"
+                user[login]:
+                  type: string
+                  description: Nom d'utilisateur (unique)
+                  example: "john.doe"
+                user[password]:
+                  type: string
+                  description: Mot de passe avec exigences spécifiques (Majuscule, minuscule, chiffres, caractères spéciaux)
+                  example: "Password123@"
+                user[role_id]:
+                  type: integer
+                  description: ID du rôle de l'utilisateur
+                  example: 3
+                user[photo]:
+                  type: string
+                  format: binary
+                  description: Photo de profil de l'utilisateur (image)
+      responses:
+        201:
+          description: Client enregistré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        400:
+          description: Erreur de validation
+
+
+  /clients/{id}:
+    get:
+      tags:
+        - Clients
+      summary: Obtenir les détails d'un client
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID du client
+      responses:
+        200:
+          description: Détails du client récupérés avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        404:
+          description: Client non trouvé
+
+  /clients/{id}/user:
+    get:
+      tags:
+        - Clients
+      summary: Obtenir un client avec les informations associées de l'utilisateur
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID du client
+      responses:
+        200:
+          description: Client et utilisateur récupérés avec succès
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: integer
-                    example: 200
-                  message:
-                    type: string
-                    example: Utilisateur déconnecté avec succès
+                  client:
+                    $ref: '#/components/schemas/Client'
+                  user:
+                    $ref: '#/components/schemas/User'
+        404:
+          description: Client non trouvé
 
-  /users/refresh:
-    post:
-      summary: Rafraîchir le token d'accès
-      operationId: refreshToken
+  /clients/{clientId}/dettes:
+    get:
       tags:
-        - Users
+        - Dettes
+      summary: Lister les dettes associées à un client
       security:
         - BearerAuth: []
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID du client
+      responses:
+        200:
+          description: Liste des dettes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dette'
+        404:
+          description: Client ou dettes non trouvés
+
+  /register:
+    post:
+      tags:
+        - Clients
+      summary: Créer un compte utilisateur pour un client existant
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: integer
+                  description: ID du client
+                  example: 1
+                nom:
+                  type: string
+                  description: Nom de l'utilisateur associé
+                  example: "John"
+                prenom:
+                  type: string
+                  description: Prénom de l'utilisateur associé
+                  example: "Doe"
+                login:
+                  type: string
+                  description: Nom d'utilisateur (unique)
+                  example: "john.doe"
+                password:
+                  type: string
+                  description: Mot de passe avec exigences spécifiques (Majuscule, minuscule, chiffres, caractères spéciaux)
+                  example: "Password123@"
+                role_id:
+                  type: integer
+                  description: ID du rôle de l'utilisateur
+                  example: 2
+                photo:
+                  type: string
+                  format: binary
+                  description: Photo de profil de l'utilisateur (image)
+      responses:
+        201:
+          description: Compte utilisateur créé avec succès pour le client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        400:
+          description: Erreur de validation
+
+  /articles:
+    get:
+      tags:
+        - Articles
+      summary: Lister les articles avec un filtre optionnel sur la disponibilité
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: disponible
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filtrer les articles disponibles (oui ou non)
+            example: oui
+      responses:
+        200:
+          description: Liste des articles récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+        401:
+          description: Non autorisé
+
+
+    post:
+      tags:
+        - Articles
+      summary: Ajouter un nouvel article
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleRequest'
+      responses:
+        201:
+          description: Article ajouté avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        400:
+          description: Erreur de validation
+
+  /articles/{id}:
+    get:
+      tags:
+        - Articles
+      summary: Obtenir les détails d'un article
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID de l'article
+      responses:
+        200:
+          description: Détails de l'article récupérés avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        404:
+          description: Article non trouvé
+
+    put:
+      tags:
+        - Articles
+      summary: Mettre à jour un article existant
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleRequest'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID de l'article
+      responses:
+        200:
+          description: Article mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        404:
+          description: Article non trouvé
+
+    delete:
+      tags:
+        - Articles
+      summary: Supprimer un article
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID de l'article
+      responses:
+        204:
+          description: Article supprimé avec succès
+        404:
+          description: Article non trouvé
+
+  /articles/libelle:
+    post:
+      tags:
+        - Articles
+      summary: Rechercher un article par son libellé
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                libelle:
+                  type: string
+                  description: Libellé de l'article
+                  example: "Article A"
+      responses:
+        200:
+          description: Article récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        404:
+          description: Article non trouvé
+
+  /articles/{id}/qteStock:
+    patch:
+      tags:
+        - Articles
+      summary: Mettre à jour la quantité en stock d'un article
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                qteStock:
+                  type: integer
+                  description: Nouvelle quantité en stock
+                  example: 50
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID de l'article
+      responses:
+        200:
+          description: Quantité mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        404:
+          description: Article non trouvé
+
+  /articles/all/qteStock:
+    post:
+      tags:
+        - Articles
+      summary: Mettre à jour les quantités en stock pour plusieurs articles
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID de l'article
+                    example: 1
+                  qteStock:
+                    type: integer
+                    description: Nouvelle quantité en stock
+                    example: 50
+      responses:
+        200:
+          description: Quantités mises à jour avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+
+  /dettes:
+    get:
+      tags:
+        - Dettes
+      summary: Lister toutes les dettes avec un filtre sur le statut (Solde ou NonSolde)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: statut
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filtrer par statut (Solde|NonSolde)
+            example: NonSolde
+      responses:
+        200:
+          description: Liste des dettes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dette'
+
+    post:
+      tags:
+        - Dettes
+      summary: Créer une nouvelle dette
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetteRequest'
+      responses:
+        201:
+          description: Dette créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dette'
+        400:
+          description: Erreur de validation
+
+
+  /dettes/{id}/articles:
+    get:
+      tags:
+        - Dettes
+      summary: Lister les articles associés à une dette
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID de la dette
+      responses:
+        200:
+          description: Liste des articles récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+        404:
+          description: Dette ou articles non trouvés
+
+  /dettes/{id}/paiements:
+    get:
+      tags:
+        - Dettes
+      summary: Lister les paiements d'une dette
+      description: Récupère tous les paiements associés à l'ID de la dette spécifié.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          description: Identifiant unique de la dette pour laquelle les paiements doivent être récupérés.
+          required: true
+          schema:
+            type: integer
+            example: 123
+      responses:
+        200:
+          description: Liste des paiements récupérée avec succès.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Paiement'
+        404:
+          description: Aucun paiement trouvé pour l'identifiant de dette fourni.
+
+    post:
+      tags:
+        - Dettes
+      summary: Ajouter un paiement à une dette
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Identifiant unique de la dette pour laquelle les paiements vont être ajoutés.
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                montant:
+                  type: number
+                  description: Montant du paiement
+                  example: 100
+      responses:
+        201:
+          description: Paiement ajouté avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paiement'
+        400:
+          description: Erreur de validation
+
+  /dettes/archive:
+    get:
+      tags:
+        - Archive
+      summary: Lister les dettes archivées avec filtres optionnels
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: client_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            description: ID du client pour filtrer les dettes archivées
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            description: Date pour filtrer les dettes archivées
+      responses:
+        200:
+          description: Liste des dettes archivées récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dette'
+  /dettes/archive/clients/{id}/dettes:
+    get:
+      tags:
+        - Archive
+      summary: Lister les dettes archivées d'un client spécifique
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID du client
+      responses:
+        200:
+          description: Liste des dettes archivées du client récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dette'
+        404:
+          description: Client non trouvé
+  /dettes/restaure/{date}:
+    get:
+      tags:
+        - Restore
+      summary: Restaurer les dettes archivées par date
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+            description: Date des dettes à restaurer
+      responses:
+        200:
+          description: Dettes restaurées avec succès
+        500:
+          description: Échec de la restauration des dettes
+  /dettes/restaure/dette/{id}:
+    get:
+      tags:
+        - Restore
+      summary: Restaurer une dette spécifique par son ID
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID de la dette à restaurer
+      responses:
+        200:
+          description: Dette restaurée avec succès
+        500:
+          description: Échec de la restauration de la dette
+  /dettes/restaure/client/{client_id}:
+    get:
+      tags:
+        - Restore
+      summary: Restaurer les dettes d'un client spécifique
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID du client dont les dettes doivent être restaurées
+      responses:
+        200:
+          description: Dettes du client restaurées avec succès
+        500:
+          description: Échec de la restauration des dettes du client
+
+  /notification/client/{clientId}:
+    get:
+      tags:
+        - Notification
+      summary: Send a debt reminder to a specific client
+      security:
+        - BearerAuth: [ ]
+      description: This endpoint sends a reminder to a specific client based on their outstanding debt.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: integer
+            description: ID of the client to send a reminder to
+      responses:
+        200:
+          description: Notification sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Debt reminder sent successfully.
+        404:
+          description: Client not found
+
+  /notification/client/all:
+    post:
+      tags:
+        - Notification
+      summary: Envoyer des rappels de dette à plusieurs clients
+      security:
+        - BearerAuth: [ ]
+      description: Envoyer des rappels de dette à plusieurs clients ou à tous les clients avec des dettes en cours. Si `clientIds` est fourni dans le corps de la requête, seuls ces clients recevront les rappels.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientIds:
+                  type: array
+                  items:
+                    type: integer
+                  description: Liste optionnelle des IDs des clients à qui envoyer les rappels
+      responses:
+        200:
+          description: Notifications envoyées avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rappels de dette envoyés à tous les clients concernés.
+        404:
+          description: Clients non trouvés ou aucun client concerné pour les rappels
+
+
+  /notification/client/message:
+    post:
+      tags:
+        - Notification
+      summary: Send a custom message to specified clients
+      description: Send a custom SMS message to a list of clients or all clients if no list is provided.
+      security:
+        - BearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -274,110 +1291,293 @@ paths:
             schema:
               type: object
               required:
-                - refresh_token
+                - message
               properties:
-                refresh_token:
+                message:
                   type: string
+                  description: Custom message to send to clients.
+                  example: "Hello, this is a reminder to update your contact information."
+                clientIds:
+                  type: array
+                  items:
+                    type: integer
+                  description: Optional array of client IDs to send the message to. If empty, the message will be sent to all clients.
+                  example: [ 1, 2, 3 ]
       responses:
-        '200':
-          description: Token rafraîchi avec succès
+        200:
+          description: Messages sent successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      access_token:
-                        type: string
-                      token_type:
-                        type: string
-                      expires_at:
-                        type: string
-                      refresh_token:
-                        type: string
                   message:
                     type: string
-                    example: Token rafraîchi avec succès
-        '400':
-          description: Token de rafraîchissement invalide
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 400
-                  message:
-                    type: string
-                    example: Token de rafraîchissement invalide
+                    example: "Custom messages sent to specified clients."
+        400:
+          description: Bad request, possibly due to incorrect data formatting or validation failure
+        401:
+          description: Unauthorized, token missing or invalid
+        500:
+          description: Internal server error, could be due to a server or database issue
 
-  /clients:
+
+  /clients/notifications/unread:
     get:
-      summary: Lister tous les clients
-      operationId: getClients
       tags:
-        - Clients
+        - Notification
+      summary: Get unread notifications for the logged-in client
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Unread notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        404:
+          description: Client not found
+
+  /clients/notifications/read:
+    get:
+      tags:
+        - Notification
+      summary: Get read notifications for the logged-in client
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Read notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        404:
+          description: Client not found
+
+  /demandes:
+    post:
+      tags:
+        - Demandes
+      summary: Create a new demande
+      description: Submits a new demande with details about the client's requested items and the total amount.
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDemande'
+      responses:
+        201:
+          description: Demande created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Demande created successfully"
+                  demande:
+                    $ref: '#/components/schemas/Demande'
+        400:
+          description: Validation error or business rule failure
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Validation failed"
+        401:
+          description: Unauthorized, token missing or invalid
+        500:
+          description: Internal server error
+    get:
+      tags:
+        - Demandes
+      summary: Afficher les demandes du client connecté
+      description: Récupère toutes les demandes du client connecté, filtrable par statut (en_cours, annuler).
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ en_cours, annuler ]
+          description: Statut des demandes à filtrer.
+          required: false
+      responses:
+        200:
+          description: Liste des demandes récupérée avec succès.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Demande'
+        401:
+          description: Non autorisé.
+        403:
+          description: Accès refusé.
+
+
+  /demandes/all:
+    get:
+      tags:
+        - Demandes
+      summary: Retrieve all demandes with optional filtering by status
+      description: Returns a list of all demandes, which can be filtered by the status ('en_cours' or 'annuler').
       security:
         - BearerAuth: []
       parameters:
         - in: query
-          name: comptes
-          required: false
+          name: status
           schema:
             type: string
-            enum: [oui, non]
-          description: Filtrer les clients ayant un compte utilisateur
-        - in: query
-          name: active
-          required: false
-          schema:
-            type: string
-            enum: [oui, non]
-          description: Filtrer les clients actifs ou inactifs
+          description: Status to filter the demandes by (optional).
       responses:
-        '200':
-          description: Liste des clients
+        200:
+          description: A list of demandes, possibly filtered by a specific status.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Demande'
+        400:
+          description: Invalid status parameter provided.
+        401:
+          description: Unauthorized access.
+  /demandes/notifications:
+    get:
+      tags:
+        - Notification
+      summary: View notifications for submitted debt demandes
+      description: Retrieves a list of notifications regarding demandes that have been submitted.
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: A list of notifications related to demandes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        401:
+          description: Unauthorized access.
+
+  /demandes/{id}/relance:
+    post:
+      tags:
+        - Demandes
+      summary: Relancer une demande spécifique
+      description: Permet au client de relancer une demande qui a été annulée, 2 jours après sa date d'annulation.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Identifiant de la demande à relancer.
+      responses:
+        200:
+          description: Demande relancée avec succès.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Demande'
+        403:
+          description: Relance non autorisée ou délai non respecté.
+        404:
+          description: Demande non trouvée.
+        401:
+          description: Non autorisé.
+
+  /demandes/{id}/disponible:
+    get:
+      tags:
+        - Demandes
+      summary: Vérifier la disponibilité des articles d'une demande
+      description: Vérifie si les articles demandés sont disponibles en stock et renvoie le statut de chaque article.
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Identifiant de la demande dont la disponibilité des articles doit être vérifiée.
+      responses:
+        200:
+          description: Informations sur la disponibilité des articles de la demande.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
+                  demande_id:
                     type: integer
-                    example: 200
-                  data:
+                    description: Identifiant de la demande vérifiée.
+                  demande_satisfiable:
+                    type: boolean
+                    description: Indique si tous les articles demandés sont disponibles en quantité requise.
+                  articles:
                     type: array
                     items:
                       type: object
                       properties:
-                        id:
+                        article_id:
                           type: integer
-                        surname:
+                          description: Identifiant de l'article.
+                        libelle:
                           type: string
-                        telephone:
+                          description: Nom de l'article.
+                        requested_quantity:
+                          type: integer
+                          description: Quantité demandée de l'article.
+                        available_quantity:
+                          type: integer
+                          description: Quantité disponible de l'article.
+                        status:
                           type: string
-                        adresse:
-                          type: string
-                          nullable: true
-                        active:
-                          type: boolean
-                  message:
-                    type: string
-                    example: Liste des clients récupérée avec succès
+                          description: Statut de la disponibilité de l'article (disponible, partiellement disponible, indisponible).
+        401:
+          description: Non autorisé.
+        403:
+          description: Accès refusé.
+        404:
+          description: Demande non trouvée.
 
-    post:
-      summary: Enregistrer un nouveau client
-      operationId: createClient
+  /demandes/{id}:
+    patch:
       tags:
-        - Clients
+        - Demandes
+      summary: Mettre à jour le statut d'une demande
+      description: Permet à un utilisateur autorisé (typiquement avec un rôle spécifique) de valider ou d'annuler une demande existante.
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Identifiant de la demande à mettre à jour.
       requestBody:
         required: true
         content:
@@ -385,179 +1585,52 @@ paths:
             schema:
               type: object
               properties:
-                surname:
+                status:
                   type: string
-                telephone:
+                  description: Nouveau statut de la demande ('valider' ou 'annuler').
+                  enum: [ valider, annuler ]
+                motif:
                   type: string
-                adresse:
-                  type: string
+                  description: Motif de la mise à jour du statut, optionnel.
                   nullable: true
-                user:
-                  type: object
-                  properties:
-                    nom:
-                      type: string
-                    prenom:
-                      type: string
-                    login:
-                      type: string
-                    password:
-                      type: string
-                    role:
-                      type: string
-                      enum: [client]
       responses:
-        '201':
-          description: Client enregistré avec succès
+        200:
+          description: Demande mise à jour avec succès.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: integer
-                    example: 201
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      surname:
-                        type: string
-                      telephone:
-                        type: string
-                      adresse:
-                        type: string
-                        nullable: true
-                      user:
-                        type: object
-                        nullable: true
-                        properties:
-                          id:
-                            type: integer
-                          nom:
-                            type: string
-                          prenom:
-                            type: string
-                          login:
-                            type: string
-                          role:
-                            type: string
                   message:
                     type: string
-                    example: Client enregistré avec succès
+                    description: Message confirmant la mise à jour de la demande.
+                  demande:
+                    $ref: '#/components/schemas/Demande'
+        401:
+          description: Non autorisé.
+        403:
+          description: Accès refusé.
+        404:
+          description: Demande non trouvée.
+        500:
+          description: Erreur lors de la mise à jour de la demande.
 
-  /clients/{id}:
+  /demandes/notifications/client:
     get:
-      summary: Obtenir les informations d'un client par ID
-      operationId: getClientById
       tags:
-        - Clients
+        - Notification
+      summary: Obtenir les notifications de demandes pour un client
+      description: Récupère les notifications spécifiques aux demandes, telles que les validations, annulations, et disponibilités partielles, pour le client connecté.
       security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID du client
+        - BearerAuth: [ ]
       responses:
-        '200':
-          description: Détails du client
+        200:
+          description: Notifications récupérées avec succès.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      surname:
-                        type: string
-                      telephone:
-                        type: string
-                      adresse:
-                        type: string
-                        nullable: true
-                      user:
-                        type: object
-                        nullable: true
-                        properties:
-                          id:
-                            type: integer
-                          nom:
-                            type: string
-                          prenom:
-                            type: string
-                          login:
-                            type: string
-                          role:
-                            type: string
-                  message:
-                    type: string
-                    example: Détails du client récupérés avec succès
-
-  /clients/{id}/user:
-    get:
-      summary: Obtenir les informations du client ainsi que son compte utilisateur
-      operationId: getClientAndUser
-      tags:
-        - Clients
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID du client
-      responses:
-        '200':
-          description: Détails du client et du compte utilisateur associé
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 200
-                  data:
-                    type: object
-                    properties:
-                      client:
-                        type: object
-                        properties:
-                          id:
-                            type: integer
-                          surname:
-                            type: string
-                          telephone:
-                            type: string
-                          adresse:
-                            type: string
-                            nullable: true
-                      user:
-                        type: object
-                        nullable: true
-                        properties:
-                          id:
-                            type: integer
-                          nom:
-                            type: string
-                          prenom:
-                            type: string
-                          login:
-                            type: string
-                          role:
-                            type: string
-                  message:
-                    type: string
-                    example: Détails du client et du compte utilisateur récupérés avec succès
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        401:
+          description: Non autorisé. Réservé aux clients.

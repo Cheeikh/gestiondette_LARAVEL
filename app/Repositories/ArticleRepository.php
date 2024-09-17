@@ -12,9 +12,9 @@ class ArticleRepository implements ArticleRepositoryInterface
         return Article::create($data);
     }
 
-    public function findAll(): array
+    public function findAll()
     {
-        return Article::all()->toArray();
+        return Article::all();
     }
 
     public function findById(int $id): Article
@@ -38,15 +38,16 @@ class ArticleRepository implements ArticleRepositoryInterface
         return Article::where('libelle', $libelle)->first();
     }
 
-    public function findAvailableArticles(): array
+    public function findAvailableArticles()
     {
-        return Article::where('qteStock', '>', 0)->get()->toArray();
+        return Article::where('qteStock', '>', 0)->get();
     }
 
-    public function findUnavailableArticles(): array
+    public function findUnavailableArticles()
     {
-        return Article::where('qteStock', '=', 0)->get()->toArray();
+        return Article::where('qteStock', '=', 0)->get();
     }
+
 
     public function updateStock(int $articleId, int $qteVente): bool
     {
@@ -59,5 +60,4 @@ class ArticleRepository implements ArticleRepositoryInterface
         $article->qteStock -= $qteVente;
         return $article->save();
     }
-
 }

@@ -111,6 +111,14 @@ return [
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
+        'mongodb' => [
+            'driver'   => 'mongodb',
+            'dsn'      => 'mongodb+srv://cheeikhmbacke:Password@xaragnetech.3ks28qs.mongodb.net/?retryWrites=true&w=majority&appName=xaragnetech',
+            'database' => 'DetteArchive'
+        ],
+
+
+
 
     ],
 

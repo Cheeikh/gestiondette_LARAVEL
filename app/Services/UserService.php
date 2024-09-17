@@ -21,6 +21,11 @@ class UserService implements UserServiceInterface
         $this->authService = $authService;
     }
 
+    public function login(array $credentials): array
+    {
+        return $this->authService->login($credentials);
+    }
+
     public function registerUser(array $data, $photo = null): User
     {
         $user = $this->userRepository->create($data);
@@ -38,8 +43,10 @@ class UserService implements UserServiceInterface
         return $this->userRepository->getByFilters($role, $active);
     }
 
-    public function login(array $credentials): array
+
+
+    public function getUserData(User $user): array
     {
-        return $this->authService->login($credentials);
+        return $user->toArray();
     }
 }

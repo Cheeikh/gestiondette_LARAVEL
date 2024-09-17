@@ -1,0 +1,51 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Demande extends Model
+{
+    use HasFactory;
+
+    // The attributes that are mass assignable.
+    protected $fillable = [
+        'client_id',
+        'total_amount',
+        'description'
+    ];
+
+    /**
+     * Get the client that owns the demande.
+     */
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    /**
+     * The articles that belong to the demande.
+     */
+    public function articles()
+    {
+        return $this->belongsToMany(Article::class, 'demande_article')
+            ->withPivot('quantity', 'price');
+    }
+
+    /**
+     * Accessor to get the formatted total amount.
+     */
+    public function getTotalAmountAttribute($value)
+    {
+        return number_format($value, 2);
+    }
+
+    /**
+     * Mutator to set the total amount properly.
+     */
+    public function setTotalAmountAttribute($value)
+    {
+        $this->attributes['total_amount'] = round($value, 2);
+    }
+}

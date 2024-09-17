@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Interfaces\DetteRepositoryInterface;
+use App\Models\Client;
 use App\Models\Dette;
 
 class DetteRepository implements DetteRepositoryInterface
@@ -23,20 +24,14 @@ class DetteRepository implements DetteRepositoryInterface
 
     public function findByStatut(bool $isSolde): array
     {
-        $dettes = Dette::with('paiements')->get();
-
-        $filteredDettes = $dettes->filter(function ($dette) use ($isSolde) {
-            $totalPaiements = $dette->paiements->sum('montant');
-
-            if ($isSolde) {
-                return $totalPaiements >= $dette->montant;
-            } else {
-                return $totalPaiements < $dette->montant;
-            }
-        });
-
-        return $filteredDettes->toArray();
+        return Dette::select('dettes.*')
+            ->leftJoin('paiements', 'dettes.id', '=', 'paiements.dette_id')
+            ->groupBy('dettes.id')
+            ->havingRaw('SUM(paiements.montant) ' . ($isSolde ? '>=' : '<') . ' dettes.montant')
+            ->get()
+            ->toArray();
     }
+
 
     public function findAll(): array
     {
@@ -71,4 +66,41 @@ class DetteRepository implements DetteRepositoryInterface
             ->get()
             ->toArray();
     }
+
+    public function getClientsWithUnpaidDebts()
+    {
+        return Client::whereHas('dettes', function ($query) {
+            $query->whereRaw('dettes.montant > (SELECT COALESCE(SUM(paiements.montant), 0) FROM paiements WHERE paiements.dette_id = dettes.id)');
+        })->get();
+    }
+
+    public function getPaidDebts()
+    {
+        // Filtrer les dettes totalement payées
+        return Dette::with(['client', 'articles', 'paiements'])
+            ->get()
+            ->filter(function ($dette) {
+                $totalPaiements = $dette->paiements->sum('montant');
+                return $totalPaiements >= $dette->montant;
+            });
+    }
+
+    public function getPaidDebtsIds()
+    {
+        // Fetch debts that are fully paid and return their IDs
+        return Dette::with(['paiements'])
+            ->get()
+            ->filter(function ($dette) {
+                $totalPaiements = $dette->paiements->sum('montant');
+                return $totalPaiements >= $dette->montant;
+            })
+            ->pluck('id');  // Collects only the IDs of these debts
+    }
+
+    public function getClientsByIds(array $clientIds)
+    {
+        return Client::whereIn('id', $clientIds)->with('dettes')->get();
+    }
+
+
 }

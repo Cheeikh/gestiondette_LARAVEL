@@ -8,13 +8,18 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.0",
         "cloudinary-labs/cloudinary-laravel": "^2.2",
+        "cloudinary/cloudinary_php": "^2.14",
         "darkaonline/l5-swagger": "^8.6",
+        "kreait/firebase-php": "^7.14",
+        "kreait/laravel-firebase": "^5.9",
         "laravel/framework": "^11.9",
         "laravel/passport": "*",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "mongodb/laravel-mongodb": "^4.8",
         "predis/predis": "^2.2",
-        "simplesoftwareio/simple-qrcode": "^4.2"
+        "simplesoftwareio/simple-qrcode": "^4.2",
+        "twilio/sdk": "^8.3"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

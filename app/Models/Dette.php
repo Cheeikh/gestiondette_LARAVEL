@@ -12,8 +12,10 @@ class Dette extends Model
     protected $fillable = [
         'client_id',
         'montant',
-        'date'
+        'date',
+        'date_echeance'
     ];
+
 
 
 

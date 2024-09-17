@@ -10,7 +10,6 @@ class PassportAuthenticationService implements AuthentificationServiceInterface
 {
     public function login(array $credentials): array
     {
-        // Vérification des identifiants
         if (!Auth::attempt($credentials)) {
             return [
                 'status' => 401,
@@ -25,12 +24,12 @@ class PassportAuthenticationService implements AuthentificationServiceInterface
         $accessToken = $tokenResult->accessToken;
         $refreshToken = $tokenResult->token->id;
 
-        // Inclure des détails supplémentaires dans la réponse
+
         $userData = [
             'id' => $user->id,
             'email' => $user->email,
             'name' => $user->nom,
-            'role' => $user->role->name, // Assurez-vous que l'utilisateur a une relation 'role' ou ajustez selon votre modèle
+            'role' => $user->role->name,
         ];
 
         return [
@@ -79,7 +78,7 @@ class PassportAuthenticationService implements AuthentificationServiceInterface
 
         // Révocation des tokens
         $user->tokens->each(function ($token) {
-            $token->revoke();  // Révocation du token
+            $token->revoke();
         });
 
         return [
